@@ -40,7 +40,7 @@ select * from access_control;
 select * from user_default;
 
 
--- Find the number of users woking in DC12
+-- Find the number of users overall woking in DC12
 select count(*) from ucl_user;
 
 
