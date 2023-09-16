@@ -40,6 +40,25 @@ select * from access_control;
 select * from user_default;
 
 
+-- Find the number of users woking in DC12
+select count(*) from ucl_user;
+
+
+-- Finds the number of the users that are active with 2 or more user ids
+with cte as
+(
+    select trim(to_char(count(user_name), '999,999')) as number_of_users, user_first_name, user_last_name
+    from ucl_user
+    group by user_first_name, user_last_name
+    having count(user_name) > 1
+)
+select count(*) as two_or_more_ids 
+from cte c, ucl_user uu
+where c.user_first_name = uu.user_first_name
+and c.user_last_name = uu.user_last_name
+and is_active = 1;
+
+
 -- Find user with their first and last name
 select user_name, user_first_name, user_last_name
 from ucl_user
