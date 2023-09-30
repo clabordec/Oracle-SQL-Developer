@@ -1,6 +1,6 @@
 alter session set current_schema = DM;
 
--- 
+-- Find each order that have more than 500 LPNs tied to it, along with the LPN being in Packed status 
 with cte as (
     select order_id,
            tc_order_id,
