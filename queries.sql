@@ -470,6 +470,15 @@ update orders set do_status = '110' where tc_order_id = '1222318803';;
 select * from order_line_item where order_id = '149217481';
 update order_line_item set do_dtl_status = '110' where order_id = '149217481' and do_dtl_status = '105';
 
+
+-- Find all ordes that are tied to the totes in the email
+select aid.cntr_nbr, aid.carton_nbr, aid.task_genrtn_ref_nbr, o.tc_order_id, aid.invn_need_type, aid.stat_code
+from alloc_invn_dtl aid
+join orders o
+on aid.tc_order_id = o.tc_order_id
+where stat_code < 90
+and task_genrtn_ref_nbr = '202309250096';
+
 -------------------------------------------------------------------------------------------------------------------------------- Shipments ----------------------------------------------------------------------------------------------------------------------------------------
 
 alter session set current_schema = DM;
