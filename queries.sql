@@ -120,6 +120,13 @@ and stat_code < 90
 and invn_need_type = '52';
 
 
+-- Check to see if there is any oLPNs that have uncompleted allocations
+select cntr_nbr, carton_nbr, task_genrtn_ref_nbr, invn_need_type, stat_code
+from alloc_invn_dtl aid
+where exists (select 1 from task_dtl td where aid.alloc_invn_dtl_id = td.alloc_invn_dtl_id)
+and stat_code < 90;
+
+
 -- Check the INTs for a certain case
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
