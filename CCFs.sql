@@ -51,8 +51,8 @@ WHERE alloc_invn_dtl_id IN ('662487563','662487567','662487578','662487582','662
 
 
 -- 
-select * from wm_inventory where location_id = '100402836' and wm_inventory_id = '475012685' and location_dtl_id = '33387513';
+SELECT * FROM wm_inventory WHERE location_id = '100402836' AND wm_inventory_id = '475012685' AND location_dtl_id = '33387513';
 
-delete wm_inventory where location_id = '100402836' and wm_inventory_id = '475012685' and location_dtl_id = '33387513';
+DELETE wm_inventory WHERE location_id = '100402836' AND wm_inventory_id = '475012685' AND location_dtl_id = '33387513';
 
-select * from wm_inventory where location_id = '100402836' and wm_inventory_id = '475012685' and location_dtl_id = '33387513';
+SELECT * FROM wm_inventory WHERE location_id = '100402836' AND wm_inventory_id = '475012685' AND location_dtl_id = '33387513';
