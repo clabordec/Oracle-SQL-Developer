@@ -9,7 +9,7 @@ select to_char(sysdate,'YYYYMMDDHH24MISS') date_column from dual;
 
 spool C:\ChangeControl\CCFxxx_&filestamp._&1..log;
 
---Chaanyah Laborde: (Title)
+-- Chaanyah Laborde: (Title)
 -- Modify the CCF Number to match the correct CCF Number below ---
 insert into setccf values ('CCF')   -- TO TURN ON
 /
