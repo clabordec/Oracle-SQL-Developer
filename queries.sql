@@ -674,6 +674,31 @@ and when_created > sysdate - 3
 and event_id = '6692';
 
 
+-- Check how many cases have diverted with no weight
+select distinct tmm.carton_nbr,
+       tmm.msg_type,
+       tmm.action,
+       tmm.divert,
+       tmm.weight,
+       tmm.msg_id,
+       tmm.source_id,
+       cle.status,
+       l.lpn_facility_status,
+       tmm.create_date_time,
+       tmm.mod_date_time
+from twcc_mhe_message tmm
+join cl_endpoint_queue cle
+on tmm.msg_id = cle.msg_id
+join cl_message clm
+on cle.msg_id = clm.msg_id
+join lpn l
+on tmm.carton_nbr = l.tc_lpn_id
+where tmm.divert = 'SCNSHIP' 
+and tmm.weight = '******' 
+and tmm.mod_date_time >= '21-OCT-23 08.00.00.000000000 PM'
+order by tmm.mod_date_time desc;
+
+
 -- Find XML for ASN
 select * from tran_log_message where msg_line_text like '%501726263%';
 select * from tran_log where tran_log_id = '1036986285';
