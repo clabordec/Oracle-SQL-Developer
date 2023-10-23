@@ -15,6 +15,7 @@ select distinct tmm.carton_nbr,
        tmm.msg_id,
        tmm.source_id,
        cle.status,
+       o.order_type,
        l.lpn_facility_status,
        tmm.create_date_time
 from twcc_mhe_message tmm
@@ -24,6 +25,8 @@ join cl_message clm
 on cle.msg_id = clm.msg_id
 join lpn l
 on tmm.carton_nbr = l.tc_lpn_id
+join orders o
+on l.order_id = o.order_id
 where tmm.divert = 'SCNSHIP' 
 -- and tmm.weight = '******' 
 and mod_date_time between '21-OCT-23 08.00.00.000000000 PM' and '22-OCT-23 04.30.00.000000000 AM'
