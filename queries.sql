@@ -2,11 +2,13 @@ alter session set current_schema = DM;
 
 
 -- Table names for tote numbers
-Select * FROM All_TAB_COLS WHERE COLUMN_NAME = 'CNTR_NBR' AND OWNER = 'DM';
+SELECT * FROM All_TAB_COLS WHERE COLUMN_NAME = 'CNTR_NBR' AND OWNER = 'DM';
 
-Select * FROM All_TAB_COLS WHERE COLUMN_NAME LIKE '%SHIP%' AND OWNER = 'DM';
+SELECT * FROM All_TAB_COLS WHERE COLUMN_NAME LIKE '%SHIP%' AND OWNER = 'DM';
 
-Select * FROM All_TAB_COLS WHERE COLUMN_NAME LIKE '%MSG_LOG%' AND OWNER = 'DM';
+SELECT * FROM All_TAB_COLS WHERE COLUMN_NAME LIKE '%MSG_LOG%' AND OWNER = 'DM';
+
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE 'RES%' AND OWNER = 'DM';
 
 -- Column names for LPNs
 Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'LPN' AND OWNER = 'DM';
@@ -38,25 +40,6 @@ select * from ucl_user;
 select * from app_instance;
 select * from access_control;
 select * from user_default;
-
-
--- Find the number of users overall woking in DC12
-select count(*) from ucl_user;
-
-
--- Finds the number of the users that are active with 2 or more user ids
-with cte as
-(
-    select trim(to_char(count(user_name), '999,999')) as number_of_users, user_first_name, user_last_name
-    from ucl_user
-    group by user_first_name, user_last_name
-    having count(user_name) > 1
-)
-select count(*) as two_or_more_ids 
-from cte c, ucl_user uu
-where c.user_first_name = uu.user_first_name
-and c.user_last_name = uu.user_last_name
-and is_active = 1;
 
 
 -- Find user with their first and last name
@@ -105,7 +88,7 @@ select * from prod_trkg_tran;
 -- Find allocations with tote number        
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where cntr_nbr in (  )
+where cntr_nbr in ('970902496844'  )
 and stat_code < 90
 and invn_need_type = '60';
 
@@ -115,7 +98,7 @@ and invn_need_type = '60';
 -- Problem Res will then submit chase allocations 
 select unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 from alloc_invn_dtl
-where cntr_nbr in (  )
+where cntr_nbr in ('970902496844'  )
 and stat_code < 90
 and invn_need_type = '52';
 
@@ -128,16 +111,18 @@ and stat_code < 90;
 
 
 -- Check the INTs for a certain case
-select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
+select unique cntr_nbr, invn_need_type, carton_nbr, stat_code, create_date_time, mod_date_time
 from alloc_invn_dtl
-where cntr_nbr in ( '00000197186577628542' );
+where cntr_nbr in ('970902496844' )
+order by mod_date_time desc;
 
 
 -- Find tasks for iLPN/totes
 select unique cntr_nbr, task_id, invn_need_type, stat_code, create_date_time, mod_date_time
 from task_dtl 
-where cntr_nbr in ('00000197186577628542'  )
-and stat_code < 90;
+where cntr_nbr in ('970902496844'  )
+and stat_code < 90
+order by create_date_time desc;
 
 
 -- Find cases that do not have the same allocated quantity as the wm allocated quantity
@@ -155,21 +140,21 @@ and td.qty_alloc - wi.wm_allocated_qty <> 0;
 -- Find allocations with oLPNs
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where TASK_CMPL_REF_NBR in (  )
+where carton_nbr in ('00000197180413736217'  )
 and stat_code < 90;
     
     
 -- Find tasks with oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 from task_dtl
-where task_cmpl_ref_nbr in (  )
+where carton_nbr in ('00000197180413736217'  )
 and stat_code < 90;
 
 
 -- Find the INTs for the oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, invn_need_type, stat_code
 from task_dtl
-where task_cmpl_ref_nbr in (  )
+where carton_nbr in ('00000197180413736217'  )
 and stat_code < 90;
 
 
@@ -185,21 +170,13 @@ where task_genrtn_ref_nbr = '202305070050' -- Change depending on your problem w
 and stat_code < '90';
 
 
--- Find user that cancelled a specfic task
-select u.user_name, u.user_first_name, u.user_last_name, t.task_id, t.cntr_nbr, t.task_genrtn_ref_nbr, t.task_cmpl_ref_nbr, t.stat_code, t.create_date_time, t.mod_date_time
-from task_dtl t, ucl_user u
-where t.user_id = u.user_name
-and t.task_id in (  )
-and t.stat_code = 99;
-
-
 -- Find task from item and location
 select t.task_id, t.cntr_nbr, t.batch_nbr, t.invn_need_type, t.task_genrtn_ref_nbr, t.task_cmpl_ref_nbr, t.stat_code, l.locn_brcd, i.item_name, i.description
 from task_dtl t, locn_hdr l, item_cbo i
 where t.dest_locn_id = l.locn_id
 and t.item_id = i.item_id
---and l.dsp_locn = 'PDF0301C04'
-and i.item_name = '2O934710 IVY 2T'
+and l.dsp_locn = 'PE03128I08'
+-- and i.item_name = '2O934710 IVY 2T'
 and  stat_code < 90;
 
 
@@ -208,7 +185,7 @@ select aid.cntr_nbr, aid.invn_need_type, aid.task_genrtn_ref_code, aid.task_cmpl
 from alloc_invn_dtl aid, locn_hdr lh, item_cbo i
 where aid.pull_locn_id = lh.locn_id
 and aid.item_id = i.item_id
-and lh.dsp_locn in ('PDF0115D04')
+and lh.dsp_locn in ('PE03128I08')
 and item_name = '1P291710 ASST 18M'
 and stat_code < 90;
 
@@ -224,14 +201,21 @@ select * from alloc_invn_dtl;
 -- Pick locations 
 select locn_brcd, dsp_locn, locn_pick_seq, last_frozn_date_time, last_cnt_date_time, cycle_cnt_pending, prt_label_flag, user_id
 from locn_hdr
--- where locn_id = '0004444';
-where locn_brcd in ('PDF0301A02?', 'PDF0301A02?');
+where locn_brcd in ('PE03128I08?', 'PE03128I08?');
 
 
 -- Resevere locations
 select locn_brcd, dsp_locn, locn_pick_seq, last_frozn_date_time, last_cnt_date_time, cycle_cnt_pending, prt_label_flag, user_id
 from locn_hdr
-where LOCN_BRCD between 'RPT2909B02?' and 'RPT2909B02?';
+where LOCN_BRCD between 'RPT1939A01?' and 'RPT1939F03?';
+
+
+-- Get the list of locations with quantity inside of them
+select distinct dsp_locn
+from locn_hdr lh inner join wm_inventory wi
+on lh.locn_id = wi.location_id
+where LOCN_BRCD between 'RPT1939A01?' and 'RPT1939F03?'
+order by 1;
 
 
 -- Check to see which locatoin has a task. 
@@ -239,7 +223,7 @@ where LOCN_BRCD between 'RPT2909B02?' and 'RPT2909B02?';
 select t.task_id, t.cntr_nbr, t.task_cmpl_ref_nbr, t.task_genrtn_ref_nbr, t.batch_nbr, t.invn_need_type, t.stat_code, l.locn_brcd, l.dsp_locn, l.last_cnt_date_time, l.user_id
 from task_dtl t, locn_hdr l
 where t.pull_locn_id = l.locn_id
-and l.dsp_locn in ('PE17206B01'  )
+and l.dsp_locn in ('RPT1939D02'  )
 and t.stat_code < 90;
 
 
@@ -248,7 +232,7 @@ select t.task_id, t.cntr_nbr, t.task_cmpl_ref_nbr, t.task_genrtn_ref_nbr, i.item
 from task_dtl t, locn_hdr l, item_cbo i
 where t.pull_locn_id = l.locn_id
 and t.item_id = i.item_id
-and l.dsp_locn in ('PE17206B01'  )
+and l.dsp_locn in ('RPT1939A01'  )
 and i.item_name = 'C220B160 N 8'
 and t.stat_code < 90;
 
@@ -269,8 +253,8 @@ from locn_hdr lh, lpn l, item_cbo i, lpn_facility_status lfs
 where lh.locn_id = l.curr_sub_locn_id
 and l.item_id = i.item_id
 and l.lpn_facility_status = lfs.lpn_facility_status
-and lh.dsp_locn in ('PDF0301A02')
-and i.item_name = '3P441010 GY 5';
+and lh.dsp_locn in ('RPT1940A01');
+--and i.item_name = '3P441010 GY 5';
 
 
 select * from locn_hdr;
@@ -371,9 +355,13 @@ select * from lpn;
 select * from item_cbo;
 
 
+-- Check the MHE Flag for OSR waves, if the MHE flag is set to 'Y' then run sys code "MHE-FLAG" to set it to 'N'
+select wave_nbr, wave_desc, mhe_flag from wave_parm where wave_nbr in ('202312150061');
+
+
 -- Checks to see who relesaed the wave
 select * from event_message
-where ek_wave_nbr = '202308270072'
+where ek_wave_nbr = '202312150062'
 --and user_id = 'yangj'
 --where ek_ilpn_nbr = '00000197180104880649'
 order by mod_date_time desc;
@@ -381,18 +369,8 @@ order by mod_date_time desc;
     
 -- Check history for released waves
 select * from event_message_history
-where ek_wave_nbr = '202308270065'
+where ek_wave_nbr = '202312150062'
 order by mod_date_time desc;
-
-
--- Find the wave that is assocaited with the item
-select w.wave_nbr, w.wave_desc, w.wave_stat_code, w.wave_stat_date_time, l.tc_lpn_id, l.lpn_status, l.lpn_facility_status, l.lpn_status_updated_dttm, l.tc_reference_lpn_id, i.item_name, 
-       i.description, i.color_desc
-from wave_parm w, lpn l, item_cbo i
-where w.wave_nbr = l.wave_nbr
-and l.item_id = i.item_id
-and w.wave_nbr in ('202309080022')
-order by l.lpn_status_updated_dttm desc;
 
 -------------------------------------------------------------------------------------------------------------------------------- Orders ----------------------------------------------------------------------------------------------------------------------------------------                                
 
@@ -471,24 +449,12 @@ select * from order_line_item where order_id = '149217481';
 update order_line_item set do_dtl_status = '110' where order_id = '149217481' and do_dtl_status = '105';
 
 
--- Find all ordes that are tied to the totes in the email
+-- Find all ordes that are tied to the totes
 select aid.cntr_nbr, aid.carton_nbr, aid.task_genrtn_ref_nbr, o.tc_order_id, aid.invn_need_type, aid.stat_code
-from alloc_invn_dtl aid
-join orders o
+from alloc_invn_dtl aid inner join orders o
 on aid.tc_order_id = o.tc_order_id
-where stat_code < 90
-and cntr_nbr in ('970077760710','970077760709','970077760705','970077760706','970077760708','970077760707','970077760711');
-
-
-select aid.cntr_nbr, aid.carton_nbr, aid.task_genrtn_ref_nbr, o.tc_order_id, oli.do_dtl_status, aid.invn_need_type, aid.stat_code
-from alloc_invn_dtl aid
-join orders o
-on aid.tc_order_id = o.tc_order_id
-join order_line_item oli
-on o.order_id = oli.order_id
-where aid.stat_code < 90
-and o.tc_order_id in ('CAR95150237_1','CAR95146646_1','JCAR95146676_1','CAR95151562_1','CAR95151206_1','CAR95146593_1','CAR95150573_1','CAR95148929_1','CAR95147871_1','CAR95146702_1','CAR95151177_1','CAR95148811_1','CAR95149699_1','CAR95076942_2','CAR95148605_1','CAR95152118_1','CAR95151071_1','CAR95152626_1','CAR95148633_1','CAR95150678_1','CAR95149585_1','CAR95150892_1','CAR95148603_1','CAR95147335_1','CAR95147028_1','CAR95150559_1','CAR95147348_1','CAR95148304_1','CAR95146593_1','CAR95145785_1','CAR95151301_1','CAR95148605_1','CAR95150823_1','CAR95148659_1','CAR95149099_1','CAR95147861_1','CAR95147892_1','CAR95152938_1')
-and cntr_nbr in ('970077760710','970077760709','970077760705','970077760706','970077760708','970077760707','970077760711');
+where cntr_nbr in ('970077760710','970077760709','970077760705','970077760706','970077760708','970077760707','970077760711')
+and stat_code < 90;
 
 -------------------------------------------------------------------------------------------------------------------------------- Shipments ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -672,36 +638,6 @@ from cl_message
 where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99005621')
 and when_created > sysdate - 3
 and event_id = '6692';
-
-
--- Check how many cases have diverted with no weight
-select distinct tmm.carton_nbr,
-       tmm.msg_type,
-       tmm.action,
-       tmm.divert,
-       tmm.weight,
-       tmm.msg_id,
-       tmm.source_id,
-       cle.status,
-       l.lpn_facility_status,
-       tmm.create_date_time,
-       tmm.mod_date_time
-from twcc_mhe_message tmm
-join cl_endpoint_queue cle
-on tmm.msg_id = cle.msg_id
-join cl_message clm
-on cle.msg_id = clm.msg_id
-join lpn l
-on tmm.carton_nbr = l.tc_lpn_id
-where tmm.divert = 'SCNSHIP' 
-and tmm.weight = '******' 
-and tmm.mod_date_time >= '21-OCT-23 08.00.00.000000000 PM'
-order by tmm.mod_date_time desc;
-
-
--- Find XML for ASN
-select * from tran_log_message where msg_line_text like '%501726263%';
-select * from tran_log where tran_log_id = '1036986285';
 
 -------------------------------------------------------------------------------------------------------------------------------- CCFs, DB Locks & Sessions ----------------------------------------------------------------------------------------------------------------------------------------
 
