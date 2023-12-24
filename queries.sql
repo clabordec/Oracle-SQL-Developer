@@ -54,8 +54,6 @@ select user_name, user_first_name, user_last_name
 from ucl_user
 where user_name = 'GTNEXUS';
 
-
--- Find unique user ids that do not have WM access
 select distinct(uu.user_name)"USER_ID", concat(concat(concat(uu.USER_FIRST_NAME,' '),uu.USER_MIDDLE_NAME),uu.USER_LAST_NAME)"USER_FULL_NAME", uu.created_source "USER_CREATED_BY", to_char(uu.created_dttm, 'MON-DD-YYYY') "USER_PROFILE_CREATED_DATE",
 case when r.role_name IS NULL THEN 'NO ROLES ASSIGNED' 
      when ud.parameter_value = '-1' THEN 'CHECK USER DEFAULTS'
@@ -587,6 +585,27 @@ and eq.status = '10'
 and cl.when_Created > sysdate - 2;
 
 
+-- Check the status for all oLPNs located in Mantissa
+select ce.name, 
+       clq.msg_id,
+       substr(data, instr(data, '^', 1, 9) + 1, 20) as oLPN,
+       data,
+       case when clq.status = '5' then 'Succeed'
+            when clq.status = '6' then 'Failed'
+            when clq.status = '10' then 'Busy'
+            when clq.status = '2' then 'Ready'
+            else 'Other'
+       end as status,
+       clq.status,
+       when_queued
+from cl_endpoint ce
+inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
+inner join cl_message cm         on clq.msg_id = cm.msg_id
+where cm.source_id = 'MANTISSA_INBOUND_WEIGHT'
+and when_queued > sysdate - 1/24
+order by when_queued desc;
+
+
 -- olPNs still in 'Packed' status after being scanned by SCNSHIP
 select * 
 from twcc_mhe_message tmm
@@ -608,7 +627,7 @@ order by create_date_time desc;
 
 
 --Tote Failed To Enter OSR And Not Consumed ... New & Improved??--
-select to_char(substr(data,49,8)) as TOTE, source_id, when_created, cl.msg_id
+select to_substr(data,49,8)) as TOTE, source_id, when_created, cl.msg_id
 from cl_message cl, cl_endpoint_queue cq
 where cl.msg_id = cq.msg_id
 and cl.when_created > sysdate-1/24
