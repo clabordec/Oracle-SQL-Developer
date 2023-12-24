@@ -54,6 +54,8 @@ select user_name, user_first_name, user_last_name
 from ucl_user
 where user_name = 'GTNEXUS';
 
+
+-- Find unique user ids that do not have WM access
 select distinct(uu.user_name)"USER_ID", concat(concat(concat(uu.USER_FIRST_NAME,' '),uu.USER_MIDDLE_NAME),uu.USER_LAST_NAME)"USER_FULL_NAME", uu.created_source "USER_CREATED_BY", to_char(uu.created_dttm, 'MON-DD-YYYY') "USER_PROFILE_CREATED_DATE",
 case when r.role_name IS NULL THEN 'NO ROLES ASSIGNED' 
      when ud.parameter_value = '-1' THEN 'CHECK USER DEFAULTS'
