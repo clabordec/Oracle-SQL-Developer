@@ -89,7 +89,7 @@ select * from prod_trkg_tran;
 -- Find allocations with tote number        
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ('00006644541627148251'  )
+where cntr_nbr in ('99019547'  )
 and stat_code < 90
 and invn_need_type = '60';
 
@@ -99,7 +99,7 @@ and invn_need_type = '60';
 -- Problem Res will then submit chase allocations 
 select unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ('99048016'  )
+where cntr_nbr in ('99019547'  )
 and stat_code < 90
 and invn_need_type = '52';
 
@@ -114,7 +114,7 @@ and stat_code < 90;
 -- Check the INTs for a certain case
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code, create_date_time, mod_date_time
 from alloc_invn_dtl
-where cntr_nbr in ('00006644541627148251' )
+where cntr_nbr in ('99019547' )
 order by mod_date_time desc;
 
 
@@ -611,6 +611,30 @@ where cm.source_id = 'MANTISSA_INBOUND_WEIGHT'
 order by when_queued desc;
 
 
+-- Check the status for all iLPNs located in PTS
+select to_char(clq.msg_id) as msg_id,
+       ce.name,
+       clq.status as status_number,
+       case when clq.status = '5' then 'Succeeed'
+            when clq.status = '6' then 'Failed'
+            when clq.status = '2' then 'Ready'
+            when clq.status = '10' then 'Busy'
+            else 'Other'
+        end as status,
+        regexp_substr(to_char(data), '[^/^]+', 1, 1) as Message_Number,
+        regexp_substr(to_char(data), '[^/^]+', 1, 9) as iLPN,
+        regexp_substr(to_char(data), '[^/^]+', 1, 4) as wave,
+        regexp_substr(to_char(data), '[^/^]+', 1, 7) as scanner,
+        regexp_substr(to_char(data), '[^/^]+', 1, 1) as user_id,
+        when_queued
+from cl_endpoint ce
+inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
+inner join cl_message cm         on clq.msg_id = cm.msg_id
+where cm.source_id = 'WCS_PTS_PickConfirm'
+--and when_queued > sysdate - 1/24
+order by when_queued desc;
+
+
 -- olPNs still in 'Packed' status after being scanned by SCNSHIP
 select * 
 from twcc_mhe_message tmm
@@ -654,14 +678,16 @@ order by cl.when_created desc;
 
 
 -- Find 6692 messages for transport orders
-select msg_id, when_created, regexp_substr(to_char(data), '[^/^]+', 1, 12) as TOTE,       
+select msg_id, 
+       regexp_substr(to_char(data), '[^/^]+', 1, 12) as TOTE,       
        regexp_substr(to_char(data), '[^/^]+', 1, 13) as QTY,
        regexp_substr(to_char(data), '[^/^]+', 1, 8) as ITEM,
        regexp_substr(to_char(data), '[^/^]+', 1, 11) as ITEM_BARCODE,
        regexp_substr(to_char(data), '[^/^]+', 1, 9) as LOT_CODE,
-       regexp_substr(to_char(data), '[^/^]+', 1, 16) as VOLUME
+       regexp_substr(to_char(data), '[^/^]+', 1, 16) as VOLUME,
+       when_created
 from cl_message
-where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99005621')
+where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99019547')
 and when_created > sysdate - 3
 and event_id = '6692';
 
