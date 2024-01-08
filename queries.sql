@@ -591,7 +591,7 @@ and cl.when_Created > sysdate - 2;
 select to_char(clq.msg_id) as msg_id,
        ce.name,
        clq.status as status_number,
-       case when clq.status = '5' then 'Succeeed'
+       case when clq.status = '5' then 'Succeed'
             when clq.status = '6' then 'Failed'
             when clq.status = '2' then 'Ready'
             when clq.status = '10' then 'Busy'
@@ -615,18 +615,17 @@ order by when_queued desc;
 select to_char(clq.msg_id) as msg_id,
        ce.name,
        clq.status as status_number,
-       case when clq.status = '5' then 'Succeeed'
+       case when clq.status = '5' then 'Succeed'
             when clq.status = '6' then 'Failed'
             when clq.status = '2' then 'Ready'
             when clq.status = '10' then 'Busy'
             else 'Other'
         end as status,
-        regexp_substr(to_char(data), '[^/^]+', 1, 1) as Message_Number,
         regexp_substr(to_char(data), '[^/^]+', 1, 9) as iLPN,
         regexp_substr(to_char(data), '[^/^]+', 1, 4) as wave,
-        regexp_substr(to_char(data), '[^/^]+', 1, 7) as scanner,
-        regexp_substr(to_char(data), '[^/^]+', 1, 1) as user_id,
-        when_queued
+        regexp_substr(to_char(data), '[^/^]+', 1, 8) as location,
+        regexp_substr(to_char(data), '[^/^]+', 1, 11) as puts,
+        data, when_queued
 from cl_endpoint ce
 inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
