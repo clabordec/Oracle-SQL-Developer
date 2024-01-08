@@ -10,26 +10,27 @@ SELECT * FROM All_TAB_COLS WHERE COLUMN_NAME LIKE '%MSG_LOG%' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE 'RES%' AND OWNER = 'DM';
 
+
 -- Column names for LPNs
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'LPN' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'LPN' AND OWNER = 'DM';
 
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'ALLOC_INVN_DTL' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'ALLOC_INVN_DTL' AND OWNER = 'DM';
 
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'ORDERS' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'ORDERS' AND OWNER = 'DM';
 
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'PROD_TRKG_TRAN' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'PROD_TRKG_TRAN' AND OWNER = 'DM';
 
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'TASK_DTL' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'TASK_DTL' AND OWNER = 'DM';
 
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'TMP_TASK_CREATION_LM_TASK_DTLS' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'TMP_TASK_CREATION_LM_TASK_DTLS' AND OWNER = 'DM';
 
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'TMP_TASK_CREATION_SELECTED_AID' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'TMP_TASK_CREATION_SELECTED_AID' AND OWNER = 'DM';
 
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'TWCC_TOTE_AUDIT' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'TWCC_TOTE_AUDIT' AND OWNER = 'DM';
 
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'OPTIMAL_KINDRED_TOTE' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'OPTIMAL_KINDRED_TOTE' AND OWNER = 'DM';
 
-SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'TWCC_BOSS_PACK_ROUTE' AND OWNER = 'DM';
+Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'TWCC_BOSS_PACK_ROUTE' AND OWNER = 'DM';
 
 -------------------------------------------------------------------------------------------------------------------------------- Users ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -52,7 +53,7 @@ and user_last_name like '%Cox%';
 -- Find the user with user name
 select user_name, user_first_name, user_last_name
 from ucl_user
-where user_name = 'GTNEXUS';
+where user_name = '334791';
 
 select distinct(uu.user_name)"USER_ID", concat(concat(concat(uu.USER_FIRST_NAME,' '),uu.USER_MIDDLE_NAME),uu.USER_LAST_NAME)"USER_FULL_NAME", uu.created_source "USER_CREATED_BY", to_char(uu.created_dttm, 'MON-DD-YYYY') "USER_PROFILE_CREATED_DATE",
 case when r.role_name IS NULL THEN 'NO ROLES ASSIGNED' 
@@ -88,7 +89,7 @@ select * from prod_trkg_tran;
 -- Find allocations with tote number        
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ('970902496844'  )
+where cntr_nbr in ('00006644541627148251'  )
 and stat_code < 90
 and invn_need_type = '60';
 
@@ -98,7 +99,7 @@ and invn_need_type = '60';
 -- Problem Res will then submit chase allocations 
 select unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ('970902496844'  )
+where cntr_nbr in ('99048016'  )
 and stat_code < 90
 and invn_need_type = '52';
 
@@ -113,14 +114,14 @@ and stat_code < 90;
 -- Check the INTs for a certain case
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code, create_date_time, mod_date_time
 from alloc_invn_dtl
-where cntr_nbr in ('970902496844' )
+where cntr_nbr in ('00006644541627148251' )
 order by mod_date_time desc;
 
 
 -- Find tasks for iLPN/totes
 select unique cntr_nbr, task_id, invn_need_type, stat_code, create_date_time, mod_date_time
 from task_dtl 
-where cntr_nbr in ('970902496844'  )
+where cntr_nbr in ('99048016'  )
 and stat_code < 90
 order by create_date_time desc;
 
@@ -140,14 +141,14 @@ and td.qty_alloc - wi.wm_allocated_qty <> 0;
 -- Find allocations with oLPNs
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where carton_nbr in ('00000197180413736217'  )
+where carton_nbr in ('00000197180416856929'  )
 and stat_code < 90;
     
     
 -- Find tasks with oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 from task_dtl
-where carton_nbr in ('00000197180413736217'  )
+where carton_nbr in ('00000197180416574298'  )
 and stat_code < 90;
 
 
@@ -207,7 +208,7 @@ where locn_brcd in ('PE03128I08?', 'PE03128I08?');
 -- Resevere locations
 select locn_brcd, dsp_locn, locn_pick_seq, last_frozn_date_time, last_cnt_date_time, cycle_cnt_pending, prt_label_flag, user_id
 from locn_hdr
-where LOCN_BRCD between 'RPT1939A01?' and 'RPT1939F03?';
+where LOCN_BRCD between 'RPT2206A01?' and 'RPT2206F03?';
 
 
 -- Get the list of locations with quantity inside of them
@@ -271,11 +272,6 @@ select * from lpn_detail;
 select * from lpn_facility_status;
 select * from item_cbo;
 
-select l.tc_lpn_id, ic.item_name 
-from item_cbo ic, lpn l
-where ic.item_id = l.item_id
-and ic.item_name = '1P651810 DM 6M'
-and l.lpn_facility_status = '';
 
 -- Find the allocations for the lpn associated with the specified wave
 select aid.cntr_nbr, aid.invn_need_type, aid.stat_code, l.tc_lpn_id, l.lpn_facility_status, l.lpn_status, aid.batch_nbr, w.wave_nbr
@@ -356,12 +352,12 @@ select * from item_cbo;
 
 
 -- Check the MHE Flag for OSR waves, if the MHE flag is set to 'Y' then run sys code "MHE-FLAG" to set it to 'N'
-select wave_nbr, wave_desc, mhe_flag from wave_parm where wave_nbr in ('202312150061');
+select wave_nbr, wave_desc, mhe_flag from wave_parm where wave_nbr in ('202401030092');
 
 
 -- Checks to see who relesaed the wave
 select * from event_message
-where ek_wave_nbr = '202312150062'
+where ek_wave_nbr = '202401030092'
 --and user_id = 'yangj'
 --where ek_ilpn_nbr = '00000197180104880649'
 order by mod_date_time desc;
@@ -369,7 +365,7 @@ order by mod_date_time desc;
     
 -- Check history for released waves
 select * from event_message_history
-where ek_wave_nbr = '202312150062'
+where ek_wave_nbr = '202401030092'
 order by mod_date_time desc;
 
 -------------------------------------------------------------------------------------------------------------------------------- Orders ----------------------------------------------------------------------------------------------------------------------------------------                                
@@ -557,6 +553,12 @@ where o.tc_order_id = l.tc_order_id
 and tc_lpn_id IN ('00000197186577628542'  )
 order by o.assigned_static_route_id;
     
+
+-- LPNs with getting error during Routing
+select tc_lpn_id, wave_nbr, lpn_facility_status, created_source, last_updated_source, created_dttm, last_updated_dttm
+from lpn
+where tc_lpn_id in (  );
+
 -------------------------------------------------------------------------------------------------------------------------------- MHEs & Messages ----------------------------------------------------------------------------------------------------------------------------------------
 
 alter session set current_schema = DM;
@@ -586,23 +588,26 @@ and cl.when_Created > sysdate - 2;
 
 
 -- Check the status for all oLPNs located in Mantissa
-select ce.name, 
-       clq.msg_id,
-       substr(data, instr(data, '^', 1, 9) + 1, 20) as oLPN,
-       data,
-       case when clq.status = '5' then 'Succeed'
+select to_char(clq.msg_id) as msg_id,
+       ce.name,
+       clq.status as status_number,
+       case when clq.status = '5' then 'Succeeed'
             when clq.status = '6' then 'Failed'
-            when clq.status = '10' then 'Busy'
             when clq.status = '2' then 'Ready'
+            when clq.status = '10' then 'Busy'
             else 'Other'
-       end as status,
-       clq.status,
-       when_queued
+        end as status,
+        regexp_substr(to_char(data), '[^/^]+', 1, 1) as Message_Number,
+        regexp_substr(to_char(data), '[^/^]+', 1, 4) as oLPN,
+        regexp_substr(to_char(data), '[^/^]+', 1, 6) as weight,
+        regexp_substr(to_char(data), '[^/^]+', 1, 7) as scanner,
+        regexp_substr(to_char(data), '[^/^]+', 1, 1) as user_id,
+        when_queued
 from cl_endpoint ce
 inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
 where cm.source_id = 'MANTISSA_INBOUND_WEIGHT'
-and when_queued > sysdate - 1/24
+--and when_queued > sysdate - 1/24
 order by when_queued desc;
 
 
