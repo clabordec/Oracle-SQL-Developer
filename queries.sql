@@ -625,7 +625,7 @@ select to_char(clq.msg_id) as msg_id,
         regexp_substr(to_char(data), '[^/^]+', 1, 4) as wave,
         regexp_substr(to_char(data), '[^/^]+', 1, 8) as location,
         regexp_substr(to_char(data), '[^/^]+', 1, 11) as puts,
-        data, when_queued
+        when_queued
 from cl_endpoint ce
 inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
