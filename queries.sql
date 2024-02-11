@@ -638,6 +638,22 @@ where divert = 'SCNMDL'
 order by mod_date_time desc;
 
 
+-- Will have records for each oLPN getting routing
+SELECT substr(msg, 1, 20) as olpn,
+       mg.* 
+FROM MSG_LOG mg 
+WHERE module = 'LOGISTYX'
+ORDER BY log_date_time DESC;
+
+
+SELECT substr(msg, 1, 20) as olpn,
+       mg.* 
+FROM MSG_LOG mg 
+WHERE module = 'LOGISTYX'
+AND msg LIKE '%UESG%'
+ORDER BY log_date_time DESC;
+
+
 -- Check the status for all oLPNs located in Mantissa
 select to_char(clq.msg_id) as msg_id,
        ce.name,
