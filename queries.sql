@@ -10,6 +10,10 @@ SELECT * FROM All_TAB_COLS WHERE COLUMN_NAME LIKE '%MSG_LOG%' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE 'RES%' AND OWNER = 'DM';
 
+SELECT * FROM ALL_TAB_COLS WHERE COLUMN_NAME LIKE 'BATCH_NBR%' AND OWNER = 'DM';
+
+SELECT * FROM ALL_TAB_COLS WHERE COLUMN_NAME LIKE '%TRACKING%' AND OWNER = 'DM';
+
 
 -- Column names for LPNs
 Select * FROM All_TAB_COLS WHERE TABLE_NAME = 'LPN' AND OWNER = 'DM';
@@ -44,16 +48,17 @@ select * from user_default;
 
 
 -- Find user with their first and last name
-select user_name, user_first_name, user_last_name
+select user_name, user_first_name, user_last_name, is_active
 from ucl_user
-where user_first_name like '%Ned%'
-and user_last_name like '%Cox%';
+where user_first_name like '%Jermon%'
+and user_last_name like '%Phillip%';
 
 
 -- Find the user with user name
-select user_name, user_first_name, user_last_name
+select user_name, user_first_name, user_last_name, is_active
 from ucl_user
-where user_name = '334791';
+where user_name = '330566';
+
 
 select distinct(uu.user_name)"USER_ID", concat(concat(concat(uu.USER_FIRST_NAME,' '),uu.USER_MIDDLE_NAME),uu.USER_LAST_NAME)"USER_FULL_NAME", uu.created_source "USER_CREATED_BY", to_char(uu.created_dttm, 'MON-DD-YYYY') "USER_PROFILE_CREATED_DATE",
 case when r.role_name IS NULL THEN 'NO ROLES ASSIGNED' 
@@ -89,7 +94,7 @@ select * from prod_trkg_tran;
 -- Find allocations with tote number        
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ('99019547'  )
+where cntr_nbr in ('00000156740167294116'  )
 and stat_code < 90
 and invn_need_type = '60';
 
@@ -99,31 +104,24 @@ and invn_need_type = '60';
 -- Problem Res will then submit chase allocations 
 select unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ('99019547'  )
+where cntr_nbr in ('00000156740167294116'  )
 and stat_code < 90
 and invn_need_type = '52';
-
-
--- Check to see if there is any oLPNs that have uncompleted allocations
-select cntr_nbr, carton_nbr, task_genrtn_ref_nbr, invn_need_type, stat_code
-from alloc_invn_dtl aid
-where exists (select 1 from task_dtl td where aid.alloc_invn_dtl_id = td.alloc_invn_dtl_id)
-and stat_code < 90;
-
-
--- Check the INTs for a certain case
-select unique cntr_nbr, invn_need_type, carton_nbr, stat_code, create_date_time, mod_date_time
-from alloc_invn_dtl
-where cntr_nbr in ('99019547' )
-order by mod_date_time desc;
 
 
 -- Find tasks for iLPN/totes
 select unique cntr_nbr, task_id, invn_need_type, stat_code, create_date_time, mod_date_time
 from task_dtl 
-where cntr_nbr in ('99048016'  )
+where cntr_nbr in ('00000156740167294116'  )
 and stat_code < 90
 order by create_date_time desc;
+
+
+-- Check the INTs for a certain case
+select unique cntr_nbr, invn_need_type, carton_nbr, stat_code, create_date_time, mod_date_time
+from alloc_invn_dtl
+where cntr_nbr in ('00000156740167294116' )
+order by mod_date_time desc;
 
 
 -- Find cases that do not have the same allocated quantity as the wm allocated quantity
@@ -141,21 +139,27 @@ and td.qty_alloc - wi.wm_allocated_qty <> 0;
 -- Find allocations with oLPNs
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where carton_nbr in ('00000197180416856929'  )
+where carton_nbr in ('00000197180422596222'  )
 and stat_code < 90;
     
     
 -- Find tasks with oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 from task_dtl
-where carton_nbr in ('00000197180416574298'  )
+where carton_nbr in ('00000197180422596222'  )
 and stat_code < 90;
 
 
 -- Find the INTs for the oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, invn_need_type, stat_code
 from task_dtl
-where carton_nbr in ('00000197180413736217'  )
+where carton_nbr in (  );
+
+
+-- Check to see if there is any oLPNs that have uncompleted allocations
+select cntr_nbr, carton_nbr, task_genrtn_ref_nbr, invn_need_type, stat_code
+from alloc_invn_dtl aid
+where exists (select 1 from task_dtl td where aid.alloc_invn_dtl_id = td.alloc_invn_dtl_id)
 and stat_code < 90;
 
 
@@ -190,6 +194,56 @@ and lh.dsp_locn in ('PE03128I08')
 and item_name = '1P291710 ASST 18M'
 and stat_code < 90;
 
+
+-- 
+SELECT aid.cntr_nbr,
+       aid.batch_nbr,
+       aid.carton_nbr,
+       aid.task_genrtn_ref_nbr,
+       aid.task_cmpl_ref_code,
+       lh.locn_pick_seq as pull_location,
+       lh.dsp_locn as destination_location,
+       lh2.locn_pick_seq as work_area_pull_location,
+       lh2.dsp_locn as word_area_destination,
+       aid.stat_code,
+       aid.user_id,
+       aid.create_date_time,
+       aid.mod_date_time
+FROM alloc_invn_dtl aid
+LEFT JOIN locn_hdr lh2
+ON aid.pull_locn_id = lh2.locn_id
+LEFT JOIN locn_hdr lh
+ON aid.dest_locn_id = lh.locn_id
+WHERE lh2.work_area = 'PTS'
+AND aid.stat_code < 90
+-- WHERE aid.cntr_nbr in ('')
+ORDER BY aid.mod_date_time DESC;
+
+
+-- 
+SELECT td.task_id,
+       td.cntr_nbr as "iLPN",
+       td.task_cmpl_ref_nbr as "oLPN",
+       td.batch_nbr,
+       td.task_genrtn_ref_nbr,
+       td.task_cmpl_ref_code,
+       lh.locn_pick_seq as pull_location,
+       lh.dsp_locn as destination_location,
+       lh2.locn_pick_seq as work_area_pull_location,
+       lh2.dsp_locn as word_area_destination,
+       td.user_id,
+       td.stat_code,
+       td.create_date_time as task_creation,
+       td.mod_date_time as task_moderation
+FROM task_dtl td
+LEFT JOIN locn_hdr lh2
+ON td.pull_locn_id = lh2.locn_id
+LEFT JOIN locn_hdr lh
+ON td.dest_locn_id = lh.locn_id
+WHERE td.stat_code < 90;
+-- AND td.task_id in ('')
+
+
 -------------------------------------------------------------------------------------------------------------------------------- Locations ----------------------------------------------------------------------------------------------------------------------------------------    
 
 alter session set current_schema = DM;
@@ -197,6 +251,11 @@ alter session set current_schema = DM;
 select * from locn_hdr;
 select * from lpn;
 select * from alloc_invn_dtl;
+
+select * from locn_hdr lh
+inner join lpn l
+on lh.locn_id = l.lcon_id
+where dsp_locn = 'RPT5822F03';
 
 
 -- Pick locations 
@@ -208,7 +267,7 @@ where locn_brcd in ('PE03128I08?', 'PE03128I08?');
 -- Resevere locations
 select locn_brcd, dsp_locn, locn_pick_seq, last_frozn_date_time, last_cnt_date_time, cycle_cnt_pending, prt_label_flag, user_id
 from locn_hdr
-where LOCN_BRCD between 'RPT2206A01?' and 'RPT2206F03?';
+where LOCN_BRCD between 'RPT5822A01?' and 'RPT5822F03?';
 
 
 -- Get the list of locations with quantity inside of them
@@ -352,12 +411,12 @@ select * from item_cbo;
 
 
 -- Check the MHE Flag for OSR waves, if the MHE flag is set to 'Y' then run sys code "MHE-FLAG" to set it to 'N'
-select wave_nbr, wave_desc, mhe_flag from wave_parm where wave_nbr in ('202401030092');
+select wave_nbr, wave_desc, mhe_flag from wave_parm where wave_nbr in ('202402100044');
 
 
 -- Checks to see who relesaed the wave
 select * from event_message
-where ek_wave_nbr = '202401030092'
+where ek_wave_nbr = '202402100044'
 --and user_id = 'yangj'
 --where ek_ilpn_nbr = '00000197180104880649'
 order by mod_date_time desc;
@@ -365,7 +424,7 @@ order by mod_date_time desc;
     
 -- Check history for released waves
 select * from event_message_history
-where ek_wave_nbr = '202401030092'
+where ek_wave_nbr = '202402100044'
 order by mod_date_time desc;
 
 -------------------------------------------------------------------------------------------------------------------------------- Orders ----------------------------------------------------------------------------------------------------------------------------------------                                
@@ -550,7 +609,7 @@ order by s.delivery_end_dttm desc;
 select l.tc_lpn_id, l.tc_parent_lpn_id, o.assigned_static_route_id, l.shipment_id, l.tc_shipment_id, l.tracking_nbr, o.d_facility_alias_id, l.wave_nbr
 from orders o, lpn l
 where o.tc_order_id = l.tc_order_id
-and tc_lpn_id IN ('00000197186577628542'  )
+and tc_lpn_id IN ('00000197181303387342'  )
 order by o.assigned_static_route_id;
     
 
@@ -578,14 +637,6 @@ where divert = 'SCNMDL'
 --and weight like '%******%'
 order by mod_date_time desc;
 
--- Checks how many messages have failed for a certain event name
-select count(CL.MSG_ID)
-from CL_MESSAGE CL, CL_ENDPOINT_QUEUE EQ
-where CL.MSG_ID = EQ.MSG_ID
-and SOURCE_ID = 'WCS_SCANNERS'
-and eq.status = '10'
-and cl.when_Created > sysdate - 2;
-
 
 -- Check the status for all oLPNs located in Mantissa
 select to_char(clq.msg_id) as msg_id,
@@ -601,7 +652,7 @@ select to_char(clq.msg_id) as msg_id,
         regexp_substr(to_char(data), '[^/^]+', 1, 4) as oLPN,
         regexp_substr(to_char(data), '[^/^]+', 1, 6) as weight,
         regexp_substr(to_char(data), '[^/^]+', 1, 7) as scanner,
-        regexp_substr(to_char(data), '[^/^]+', 1, 1) as user_id,
+        regexp_substr(to_char(data), '[^/^]+', 1, 9) as user_id,
         when_queued
 from cl_endpoint ce
 inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
@@ -629,8 +680,9 @@ select to_char(clq.msg_id) as msg_id,
 from cl_endpoint ce
 inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
-where cm.source_id = 'WCS_PTS_PickConfirm'
---and when_queued > sysdate - 1/24
+--where when_queued between '13-JAN-24 06.30.00.000000000 PM' and '15-JAN-24 04.30.00.000000000 AM'
+where when_queued >= '03-FEB-24 06.30.00.000000000 PM'
+and cm.source_id = 'WCS_PTS_PickConfirm'
 order by when_queued desc;
 
 
