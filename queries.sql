@@ -78,8 +78,8 @@ select * from cl_message where data like '%00000197180464613246%';
 -- Find user with their first and last name
 select user_name, user_first_name, user_last_name, is_active
 from ucl_user
-where user_first_name like '%Jacqueline%'
-and user_last_name like '%Canas%';
+where user_first_name like '%Jeanette%'
+and user_last_name like '%William%';
 
 
 -- Find the user with user name
@@ -330,7 +330,7 @@ from task_dtl td, item_cbo ic, locn_hdr lh
 where td.item_id = ic.item_id
 and td.pull_locn_id = lh.locn_id
 and td.stat_code < 90
-and task_id = '89095491'
+and task_id = '89098336'
 order by task_seq_nbr;
 
 
@@ -592,20 +592,26 @@ select * from task_dtl where carton_nbr = '00000197180446733238';
 
 -- Checks to see who relesaed the wave
 select * from event_message
-where ek_wave_nbr = '202408230038'
+where ek_wave_nbr = '202409010080'
 --and user_id = 'yangj'
 --where ek_ilpn_nbr = '00000197180104880649'
 order by mod_date_time desc;
 
-select wave_nbr from lpn where tc_lpn_id = '970902504090';
-select * from wave_parm
 
-select * from task_dtl where task_genrtn_ref_nbr = '202406160004001' order by mod_date_time desc;
+select wave_nbr from lpn where tc_lpn_id = '970902504090';
+select * from wave_parm;
+
 
 select task_id, task_type, stat_code, user_id, create_date_time, mod_date_time 
-from task_dtl where task_genrtn_ref_nbr = '202406160004001' order by mod_date_time desc;
+from task_dtl 
+where task_genrtn_ref_nbr like '202409010080%' 
+and stat_code < 90
+order by mod_date_time desc;
 
-select count(*) number_of_tasks, stat_code, task_type from task_dtl where task_genrtn_ref_nbr = '202406160007' group by stat_code, task_type;
+select count(*) number_of_tasks, stat_code, task_type 
+from task_dtl 
+where task_genrtn_ref_nbr = '202409010080' 
+group by stat_code, task_type;
 
 select * from task_hdr where task_genrtn_ref_nbr = '202406150049001';
 
@@ -892,7 +898,7 @@ inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
 --where when_queued between '13-JAN-24 06.30.00.000000000 PM' and '15-JAN-24 04.30.00.000000000 AM'
 where when_queued >= sysdate - 5
-and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '970902501506'
+--and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '970902501506'
 and cm.source_id = 'USS_INDUCT_MODE'
 order by when_queued desc;
 
@@ -915,7 +921,7 @@ inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
 --where when_queued between '13-JAN-24 06.30.00.000000000 PM' and '15-JAN-24 04.30.00.000000000 AM'
 where when_queued >= sysdate - 3
-and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '970902509916'
+--and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '970902509916'
 and cm.source_id = 'WCS_USS_IND_CONSUMED'
 order by when_queued desc;
 
@@ -938,7 +944,7 @@ inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
 --where when_queued between '13-JAN-24 06.30.00.000000000 PM' and '15-JAN-24 04.30.00.000000000 AM'
 where when_queued >= sysdate - 2
-and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '970902509916'
+--and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '970902509916'
 and cm.source_id = 'WCS_USS_PS_DIVERTED'
 order by when_queued desc;
 
@@ -961,7 +967,7 @@ inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
 --where when_queued between '13-JAN-24 06.30.00.000000000 PM' and '15-JAN-24 04.30.00.000000000 AM'
 where when_queued >= sysdate - 1/24
-and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '970902508781'
+--and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '970902508781'
 and cm.source_id = 'WCS_SCANNERS'
 order by when_queued desc;
 
@@ -984,7 +990,7 @@ inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
 --where when_queued between '13-JAN-24 06.30.00.000000000 PM' and '15-JAN-24 04.30.00.000000000 AM'
 where when_queued >= sysdate - 1/24
-and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '00006644541785144362'
+--and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '00006644541785144362'
 and cm.source_id = 'SDI_WB_DIVERTCONFIRM'
 order by when_queued desc;
 
