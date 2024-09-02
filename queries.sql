@@ -72,6 +72,8 @@ select * from app_instance;
 select * from access_control;
 select * from user_default;
 
+select * from cl_message where data like '%00000197180464613246%';
+
 
 -- Find user with their first and last name
 select user_name, user_first_name, user_last_name, is_active
@@ -83,7 +85,7 @@ and user_last_name like '%Canas%';
 -- Find the user with user name
 select user_name, user_first_name, user_last_name, is_active
 from ucl_user
-where user_name = '321803';
+where user_name in ('351033', '351028', '351026');
 
 
 select distinct(uu.user_name)"USER_ID", concat(concat(concat(uu.USER_FIRST_NAME,' '),uu.USER_MIDDLE_NAME),uu.USER_LAST_NAME)"USER_FULL_NAME", uu.created_source "USER_CREATED_BY", to_char(uu.created_dttm, 'MON-DD-YYYY') "USER_PROFILE_CREATED_DATE",
@@ -145,8 +147,8 @@ and mod_date_time > sysdate - 1;
 -- Find tasks for iLPN/totes
 select unique cntr_nbr, task_id, carton_nbr, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
 from task_dtl 
-where cntr_nbr in (  ) 
-and stat_code < 90
+where cntr_nbr in ( '970902507913' ) 
+--and stat_code < 90
 order by create_date_time desc;
 
 
@@ -320,6 +322,18 @@ and cntr_nbr in ('PDF0221B03')
 and td.qty_alloc - wi.wm_allocated_qty <> 0;
 
 
+-- Get the barcodes for a specific task for chutes
+-- This is needed whenever the chute closer is having issues closing out the chute
+-- Use the PCK task group when completing the task
+select task_seq_nbr, task_id, item_name, item_bar_code, lh.dsp_locn
+from task_dtl td, item_cbo ic, locn_hdr lh
+where td.item_id = ic.item_id
+and td.pull_locn_id = lh.locn_id
+and td.stat_code < 90
+and task_id = '89095491'
+order by task_seq_nbr;
+
+
 -- Find the task that was created for OSR location
 select * from task_hdr where task_genrtn_ref_nbr = '';
     
@@ -392,13 +406,13 @@ inner join wm_inventory wi
 on lh.locn_id = wi.location_id
 inner join item_cbo ic
 on wi.item_id = ic.item_id
-where dsp_locn = 'PE13503A07';
+where dsp_locn = 'PE23501A04';
 
 
 -- Pick locations 
 select locn_brcd, dsp_locn, locn_pick_seq, last_frozn_date_time, last_cnt_date_time, cycle_cnt_pending, prt_label_flag, user_id
 from locn_hdr
-where locn_brcd in ('PE13503A07?', 'PE13503A07?');
+where locn_brcd in ('PE23501A04?', 'PE23501A04?');
 
 
 -- Resevere locations
@@ -421,7 +435,7 @@ order by 1;
 select t.task_id, t.cntr_nbr, t.task_cmpl_ref_nbr, t.task_genrtn_ref_nbr, t.batch_nbr, t.invn_need_type, t.stat_code, l.locn_brcd, l.dsp_locn, l.last_cnt_date_time, l.user_id
 from task_dtl t, locn_hdr l
 where t.pull_locn_id = l.locn_id
-and l.dsp_locn in ('PE13503A07'  )
+and l.dsp_locn in ('PE23501A04'  )
 and t.stat_code < 90;
 
 
@@ -578,7 +592,7 @@ select * from task_dtl where carton_nbr = '00000197180446733238';
 
 -- Checks to see who relesaed the wave
 select * from event_message
-where ek_wave_nbr = '202408180027'
+where ek_wave_nbr = '202408230038'
 --and user_id = 'yangj'
 --where ek_ilpn_nbr = '00000197180104880649'
 order by mod_date_time desc;
@@ -812,9 +826,10 @@ order by s.delivery_end_dttm desc;
 select l.tc_lpn_id, l.tc_parent_lpn_id, o.assigned_static_route_id, l.shipment_id, l.tc_shipment_id, l.tracking_nbr, o.d_facility_alias_id, l.wave_nbr
 from orders o, lpn l
 where o.tc_order_id = l.tc_order_id
-and tc_lpn_id IN (  )
+and tc_lpn_id in ( '00000197181308166843' )
 order by o.assigned_static_route_id;
     
+    select * from msg_log where msg like '%00000197181308166843%';
 
 -- LPNs with getting error during Routing
 select tc_lpn_id, wave_nbr, lpn_facility_status, created_source, last_updated_source, created_dttm, last_updated_dttm
@@ -822,7 +837,8 @@ from lpn
 where tc_lpn_id in ('00006644541794904223'  );
 
 -------------------------------------------------------------------------------------------------------------------------------- MHEs & Messages ----------------------------------------------------------------------------------------------------------------------------------------
-
+select * from locn_hdr;
+select * from task_dtl;
 alter session set current_schema = DM;
 
 
@@ -879,8 +895,6 @@ where when_queued >= sysdate - 5
 and regexp_substr(to_char(data), '[^/^]+', 1, 7) = '970902501506'
 and cm.source_id = 'USS_INDUCT_MODE'
 order by when_queued desc;
-
-select * from cl_message where data like '%970100016856%';
 
 
 -- Check the wave for all iLPNs located in Wavebank
@@ -1078,7 +1092,7 @@ select msg_id,
        regexp_substr(to_char(data), '[^/^]+', 1, 16) as VOLUME,
        when_created
 from cl_message
-where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99047652')
+where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99033184')
 and when_created > sysdate - 5
 and event_id = '6692';
 
@@ -1211,4 +1225,4 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%PRODUPC%' AND OWNER = 'DM';
 select * from ASNDBA.asn_intransit_lpn@wms12_to_omnia;
 select * from prodskus@wms12_to_omnia;
 SELECT * FROM ALL_DB_LINKS;
-select * from msg_log where msg like '%87073773%';
+select * from msg_log where msg like '%847945895%';
