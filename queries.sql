@@ -137,13 +137,6 @@ and stat_code < 90
 and invn_need_type = '52';
 
 
-select cntr_nbr, carton_nbr, ic.item_name, ic.item_bar_code, stat_code, mod_date_time
-from alloc_invn_dtl aid, item_cbo ic
-where aid.item_id = ic.item_id
-and item_bar_code = '195862649013'
-and cntr_nbr = '99043953'
-and mod_date_time > sysdate - 1;
-
 -- Find tasks for iLPN/totes
 select unique cntr_nbr, task_id, carton_nbr, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
 from task_dtl 
