@@ -147,9 +147,19 @@ and mod_date_time > sysdate - 1;
 -- Find tasks for iLPN/totes
 select unique cntr_nbr, task_id, carton_nbr, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
 from task_dtl 
-where cntr_nbr in ( '970902507913' ) 
---and stat_code < 90
+where cntr_nbr in ( '99000595' ) 
+and stat_code < 90
 order by create_date_time desc;
+
+
+-- Check to see if the tote(s) need to go to OSR
+-- If so it needs an 6692 event message submitted
+select unique td.cntr_nbr, td.task_id, td.carton_nbr, lh.dsp_locn, td.invn_need_type, td.task_type, td.stat_code, td.create_date_time, td.mod_date_time
+from task_dtl td, locn_hdr lh
+where td.dest_locn_id = lh.locn_id
+and td.cntr_nbr in ( '99000595' ) 
+and td.stat_code < 90
+order by td.create_date_time desc;
 
 
 -- Get the most recent lpn
