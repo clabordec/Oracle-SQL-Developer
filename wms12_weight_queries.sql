@@ -449,4 +449,3 @@ where tmm.divert = 'SCNSHIP'
 and tmm.carton_nbr in ('00000197180392725431','00000197180392725448')
 and mod_date_time between '21-OCT-23 08.00.00.000000000 PM' and '22-OCT-23 04.30.00.000000000 AM'
 order by tmm.carton_nbr asc;
-
