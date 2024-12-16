@@ -50,6 +50,10 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LOG  %' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE 'MSG%' AND OWNER = 'DM';
 
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%MANIFEST%' AND OWNER = 'DM';
+
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE 'PICKING%' AND OWNER = 'DM';
+
 
 -- Find certain tables and columns
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME = 'SHIPMENT' AND COLUMN_NAME LIKE '%GROUP%' AND OWNER = 'DM';
@@ -62,6 +66,10 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%ARCH%' AND COLUMN_NAME LIKE '
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LPN%' AND COLUMN_NAME LIKE '%MANIFEST%' AND OWNER = 'DM';
 
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LPN%' AND COLUMN_NAME LIKE '%STATUS%' AND OWNER = 'DM';
+
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%ORDERS%' AND COLUMN_NAME LIKE '%PO%' AND OWNER = 'DM';
+
 -------------------------------------------------------------------------------------------------------------------------------- Users ----------------------------------------------------------------------------------------------------------------------------------------
 
 alter session set current_schema = DM;
@@ -72,22 +80,21 @@ select * from app_instance;
 select * from access_control;
 select * from user_default;
 
-select * from cl_message where data like '%00000197180464613246%';
-
 
 -- Find user with their first and last name
 select user_name, user_first_name, user_last_name, is_active
 from ucl_user
-where user_first_name like '%Jeanette%'
-and user_last_name like '%William%';
+where user_first_name like '%Trenton%'
+and user_last_name like '%Jackson';
 
 
 -- Find the user with user name
 select user_name, user_first_name, user_last_name, is_active
 from ucl_user
-where user_name in ('351033', '351028', '351026');
+where user_name in ('298034');
 
 
+-- 
 select distinct(uu.user_name)"USER_ID", concat(concat(concat(uu.USER_FIRST_NAME,' '),uu.USER_MIDDLE_NAME),uu.USER_LAST_NAME)"USER_FULL_NAME", uu.created_source "USER_CREATED_BY", to_char(uu.created_dttm, 'MON-DD-YYYY') "USER_PROFILE_CREATED_DATE",
 case when r.role_name IS NULL THEN 'NO ROLES ASSIGNED' 
      when ud.parameter_value = '-1' THEN 'CHECK USER DEFAULTS'
@@ -122,7 +129,7 @@ select * from prod_trkg_tran;
 -- Find allocations with tote number        
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where cntr_nbr in (  )
+where cntr_nbr in ( '970100014788' )
 and stat_code < 90
 and invn_need_type = '60';
 
@@ -132,17 +139,48 @@ and invn_need_type = '60';
 -- Problem Res will then submit chase allocations 
 select unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 from alloc_invn_dtl
-where cntr_nbr in (  )
+where cntr_nbr in ( '970100021429' )
 and stat_code < 90
 and invn_need_type = '52';
 
 
 -- Find tasks for iLPN/totes
-select unique cntr_nbr, task_id, carton_nbr, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
-from task_dtl 
-where cntr_nbr in ( '99000595' ) 
+select task_seq_nbr, cntr_nbr, task_id, carton_nbr, item_name, item_bar_code, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
+from task_dtl td, item_cbo ic
+where td.item_id = ic.item_id
+and cntr_nbr in ( '970902498589' ) 
 and stat_code < 90
-order by create_date_time desc;
+order by task_seq_nbr asc;
+
+
+-- Check the INTs for a certain case
+select unique cntr_nbr, invn_need_type, carton_nbr, task_genrtn_ref_nbr, stat_code, create_date_time, mod_date_time
+from alloc_invn_dtl
+where cntr_nbr in ('970100014788'  )
+--and stat_code < 90
+and mod_date_time > sysdate - 2
+order by mod_date_time desc;
+
+
+-- Find the 07 task with the wave number and location
+select td.task_seq_nbr, td.task_id, aid.invn_need_type, aid.cntr_nbr, ic.item_name, ic.item_bar_code, td.task_genrtn_ref_nbr, ic.item_name, td.stat_code, lh.dsp_locn as pull_location, lh2.dsp_locn as destination_loaction
+from task_dtl td
+join locn_hdr lh
+on td.pull_locn_id = lh.locn_id
+join locn_hdr lh2
+on td.dest_locn_id = lh2.locn_id
+join item_cbo ic
+on td.item_id = ic.item_id
+join alloc_invn_dtl aid
+on td.alloc_invn_dtl_id = aid.alloc_invn_dtl_id
+join item_cbo ic
+on td.item_id = ic.item_id
+-- where task_id = '90854113'
+where td.task_genrtn_ref_nbr like '%202410230072%'
+--where lh.dsp_locn = 'PE52210C03'
+and lh.dsp_locn = 'PE25505A07'
+--and td.stat_code < 90
+order by task_seq_nbr;
 
 
 -- Check to see if the tote(s) need to go to OSR
@@ -150,7 +188,7 @@ order by create_date_time desc;
 select unique td.cntr_nbr, td.task_id, td.carton_nbr, lh.dsp_locn, td.invn_need_type, td.task_type, td.stat_code, td.create_date_time, td.mod_date_time
 from task_dtl td, locn_hdr lh
 where td.dest_locn_id = lh.locn_id
-and td.cntr_nbr in ( '99000595' ) 
+and td.cntr_nbr in ( '99007170' ) 
 and td.stat_code < 90
 order by td.create_date_time desc;
 
@@ -167,51 +205,35 @@ and l.last_updated_dttm > sysdate - 1/24;
 select task_id, item_name, item_bar_code
 from task_dtl td, item_cbo ic
 where td.item_id = ic.item_id
-and item_name in ('1R545710 B 6M', '1R545710 B 9M')
+and item_name in ('1R006710 T 6M')
 and batch_nbr = 'EC002'
 and stat_code < 90;
-
-
--- Check the INTs for a certain case
-select unique cntr_nbr, invn_need_type, carton_nbr, task_genrtn_ref_nbr, stat_code, create_date_time, mod_date_time
-from alloc_invn_dtl
-where cntr_nbr in ('EXC_170824_001244623'  )
---and stat_code < 90
-and mod_date_time > sysdate - 2
-order by mod_date_time desc;
 
 
 -- Find allocations with oLPNs
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where carton_nbr in ('00000197181307595590'  )
+where carton_nbr in ('00000197180503953982'  )
 and stat_code < 90;
 
     
 -- Find tasks with oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 from task_dtl
-where carton_nbr in ('00000197181307595590'  )
+where carton_nbr in ('00000197180503953982'  )
 and stat_code < 90;
 
 
 -- Find the INTs for the oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, invn_need_type, stat_code, user_id
 from task_dtl
-where carton_nbr in ('00000197181307595590'  );
+where carton_nbr in ('00000197180495732282'  );
 
 
 -- Check to see if there is any oLPNs that have uncompleted allocations
 select cntr_nbr, carton_nbr, task_genrtn_ref_nbr, invn_need_type, stat_code
 from alloc_invn_dtl aid
 where exists (select 1 from task_dtl td where aid.alloc_invn_dtl_id = td.alloc_invn_dtl_id)
-and stat_code < 90;
-
-
--- Check wave number for iLPN/tote
-select cntr_nbr, task_genrtn_ref_nbr, task_cmpl_ref_nbr, carton_nbr, batch_nbr, stat_code, create_date_time, mod_date_time
-from alloc_invn_dtl 
-where cntr_nbr = '99002155' 
 and stat_code < 90;
 
 
@@ -319,7 +341,7 @@ select td.task_id, td.invn_need_type, td.stat_code, td.qty_alloc, wi.wm_allocate
 from task_dtl td, wm_inventory wi, lpn_detail ld
 where td.cntr_nbr = wi.tc_lpn_id
 and ld.lpn_id = wi.lpn_id
-and cntr_nbr in ('PDF0221B03')
+and cntr_nbr in ('PE21406C01')
 --and td.task_id = '75649165'
 --and td.stat_code = '40'
 and td.qty_alloc - wi.wm_allocated_qty <> 0;
@@ -333,18 +355,22 @@ from task_dtl td, item_cbo ic, locn_hdr lh
 where td.item_id = ic.item_id
 and td.pull_locn_id = lh.locn_id
 and td.stat_code < 90
-and task_id = '89098336'
+and task_id = '92965117'
 order by task_seq_nbr;
 
 
--- Find the task that was created for OSR location
-select * from task_hdr where task_genrtn_ref_nbr = '';
-    
+-- Find a iLPN based off of the item barcode
+select *
+from item_cbo ic, lpn l
+where ic.item_id = l.item_id 
+and item_bar_code = '197347082070' 
+and tc_lpn_id like '0000197%';
+
     
 -- Find the tasks associated with the the specific wave number
 select unique (cntr_nbr), invn_need_type, task_id, stat_code
 from task_dtl
-where task_genrtn_ref_nbr = '202305070050' -- Change depending on your problem wave
+where task_genrtn_ref_nbr = '202421080038' -- Change depending on your problem wave
 --and task_type = '93'
 and stat_code < '90';
 
@@ -368,7 +394,7 @@ select t.task_id, t.cntr_nbr, t.batch_nbr, t.invn_need_type, t.task_genrtn_ref_n
 from task_dtl t, locn_hdr l, item_cbo i
 where t.dest_locn_id = l.locn_id
 and t.item_id = i.item_id
-and l.dsp_locn = 'PDF0221B03'
+and l.dsp_locn = 'PE21406C01'
 -- and i.item_name = '2O934710 IVY 2T'
 and  stat_code < 90;
 
@@ -378,7 +404,7 @@ select aid.cntr_nbr, aid.invn_need_type, aid.task_genrtn_ref_code, aid.task_cmpl
 from alloc_invn_dtl aid, locn_hdr lh, item_cbo i
 where aid.pull_locn_id = lh.locn_id
 and aid.item_id = i.item_id
-and lh.dsp_locn in ('PDF0221B03')
+and lh.dsp_locn in ('PE03124G11')
 --and item_name = '1P291710 ASST 18M'
 and stat_code < 90;
 
@@ -409,19 +435,19 @@ inner join wm_inventory wi
 on lh.locn_id = wi.location_id
 inner join item_cbo ic
 on wi.item_id = ic.item_id
-where dsp_locn = 'PE23501A04';
+where dsp_locn = 'PE21406C01';
 
 
 -- Pick locations 
 select locn_brcd, dsp_locn, locn_pick_seq, last_frozn_date_time, last_cnt_date_time, cycle_cnt_pending, prt_label_flag, user_id
 from locn_hdr
-where locn_brcd in ('PE23501A04?', 'PE23501A04?');
+where locn_brcd in ('PE21406C01?', 'PE21406C01?');
 
 
 -- Resevere locations
 select locn_id, locn_brcd, dsp_locn, locn_pick_seq, last_frozn_date_time, last_cnt_date_time, cycle_cnt_pending, prt_label_flag, user_id
 from locn_hdr
-where LOCN_BRCD between 'RPT3206F02?' and 'RPT3206F02?';
+where LOCN_BRCD between 'RPT5910A01?' and 'RPT5958B03?';
 
 
 -- Get the list of locations with quantity inside of them
@@ -438,7 +464,7 @@ order by 1;
 select t.task_id, t.cntr_nbr, t.task_cmpl_ref_nbr, t.task_genrtn_ref_nbr, t.batch_nbr, t.invn_need_type, t.stat_code, l.locn_brcd, l.dsp_locn, l.last_cnt_date_time, l.user_id
 from task_dtl t, locn_hdr l
 where t.pull_locn_id = l.locn_id
-and l.dsp_locn in ('PE23501A04'  )
+and l.dsp_locn in ('PE21406C01'  )
 and t.stat_code < 90;
 
 
@@ -447,8 +473,8 @@ select t.task_id, t.cntr_nbr, t.task_cmpl_ref_nbr, t.task_genrtn_ref_nbr, i.item
 from task_dtl t, locn_hdr l, item_cbo i
 where t.pull_locn_id = l.locn_id
 and t.item_id = i.item_id
-and l.dsp_locn in ('PE40809B01'  )
-and i.item_name = '1Q135210 ASST 24M'
+and l.dsp_locn in ('PE21406C01'  )
+and i.item_name = '1R006710 T 6M'
 and t.stat_code < 90;
 
 
@@ -468,7 +494,8 @@ from locn_hdr lh, lpn l, item_cbo i, lpn_facility_status lfs
 where lh.locn_id = l.curr_sub_locn_id
 and l.item_id = i.item_id
 and l.lpn_facility_status = lfs.lpn_facility_status
-and lh.dsp_locn in ('PE13503A07');
+and lh.dsp_locn in ('PE21406C01')
+order by lpn_status_updated_dttm desc;
 --and i.item_name = '3P441010 GY 5';
 
 -------------------------------------------------------------------------------------------------------------------------------- LPNS & Items ----------------------------------------------------------------------------------------------------------------------------------------
@@ -595,14 +622,18 @@ select * from task_dtl where carton_nbr = '00000197180446733238';
 
 -- Checks to see who relesaed the wave
 select * from event_message
-where ek_wave_nbr = '202409010080'
+where ek_wave_nbr = '202411010057'
 --and user_id = 'yangj'
 --where ek_ilpn_nbr = '00000197180104880649'
 order by mod_date_time desc;
 
 
-select wave_nbr from lpn where tc_lpn_id = '970902504090';
-select * from wave_parm;
+-- Find tasks for Waves on the sorer
+select unique cntr_nbr, task_id, carton_nbr, invn_need_type, task_type, stat_code, task_genrtn_ref_nbr, create_date_time, mod_date_time
+from task_dtl 
+where task_genrtn_ref_nbr in (  ) 
+and stat_code < 90
+order by create_date_time desc;
 
 
 select task_id, task_type, stat_code, user_id, create_date_time, mod_date_time 
@@ -650,7 +681,7 @@ select o.last_updated_dttm, o.* from orders o order by o.last_updated_dttm desc;
 select l.tc_lpn_id, o.bill_to_name
 from orders o, lpn l
 where o.tc_order_id = l.tc_order_id
-and tc_lpn_id = '00000197180455361835';
+and tc_lpn_id = '00000197180496505113';
 
 
 -- Retrieve the orders
@@ -665,7 +696,7 @@ and o.ext_purchase_order in ('JCAR91997307');
 select o.order_id, o.tc_order_id, l.tc_lpn_id, l.lpn_facility_status
 from lpn l, orders o
 where l.tc_order_id = o.tc_order_id
-and l.tc_lpn_id = '00000197181388003847';
+and l.tc_lpn_id = '00000197180484378019';
 
 
 -- Check if the order came through with any errors or not.
@@ -736,6 +767,20 @@ and ic.item_id = oli.item_id
 and oli.is_chase_created_line is null
 order by oli.created_dttm desc;
 
+
+--
+select l.tc_lpn_id, l.lpn_facility_status, o.tc_order_id, l.tracking_nbr, l.ship_via, o.lane_name, o.ref_field_3, o.pickup_end_dttm, o.delivery_end_dttm, o.delivery_start_dttm
+from lpn l, orders o
+where l.tc_order_id = o.tc_order_id
+-- and d_address_1 like '%%'
+-- and wave_nbr = ''
+and l.tc_lpn_id in ('00000197180484378019')
+and o.tc_order_id in ('CAR103459782_2')
+-- and d_state_prov = ''
+-- and d_city = ''
+-- and l.lpn_facility_status < 90
+and o.ref_field_3 = 'EC';
+
 -------------------------------------------------------------------------------------------------------------------------------- Shipments ----------------------------------------------------------------------------------------------------------------------------------------
 
 alter session set current_schema = DM;
@@ -787,6 +832,12 @@ where tc_shipment_id = 'CS85018005'
 and lpn_facility_status = '30';
 
 
+-- Find lpns that are not in Shipped status
+select tc_lpn_id, tc_order_id, lpn_facility_status from lpn 
+where manifest_nbr = 'UPS000050095' 
+and lpn_facility_status <> 90;
+
+
 -- STS - Ship to Store
 -- Checks to see if STS is on for all stores
 select * from facility f, facility_alias fa
@@ -835,15 +886,15 @@ order by s.delivery_end_dttm desc;
 select l.tc_lpn_id, l.tc_parent_lpn_id, o.assigned_static_route_id, l.shipment_id, l.tc_shipment_id, l.tracking_nbr, o.d_facility_alias_id, l.wave_nbr
 from orders o, lpn l
 where o.tc_order_id = l.tc_order_id
-and tc_lpn_id in ( '00000197181308166843' )
+and tc_lpn_id in ('00000197181310933105','00000197181310654437','00000197181310934195','00000197181310900831','00000197181310688456','00000197181310981373','00000197181310580316' )
 order by o.assigned_static_route_id;
+
     
-    select * from msg_log where msg like '%00000197181308166843%';
 
 -- LPNs with getting error during Routing
 select tc_lpn_id, wave_nbr, lpn_facility_status, created_source, last_updated_source, created_dttm, last_updated_dttm
 from lpn
-where tc_lpn_id in ('00006644541794904223'  );
+where tc_lpn_id in ('00000197180484378019'  );
 
 -------------------------------------------------------------------------------------------------------------------------------- MHEs & Messages ----------------------------------------------------------------------------------------------------------------------------------------
 select * from locn_hdr;
@@ -905,6 +956,7 @@ where when_queued >= sysdate - 5
 and cm.source_id = 'USS_INDUCT_MODE'
 order by when_queued desc;
 
+select * from cl_message where data like '%99016206%';
 
 -- Check the wave for all iLPNs located in Wavebank
 select to_char(clq.msg_id) as msg_id,
@@ -1048,6 +1100,32 @@ and cm.source_id = 'WCS_PTS_PickConfirm'
 order by when_queued desc;
 
 
+-- Check the status for all iLPNs located in PTS
+select to_char(clq.msg_id) as msg_id,
+       ce.name,
+       clq.status as status_number,
+       case when clq.status = '5' then 'Succeed'
+            when clq.status = '6' then 'Failed'
+            when clq.status = '2' then 'Ready'
+            when clq.status = '10' then 'Busy'
+            else 'Other'
+        end as status,
+        regexp_substr(to_char(data), '[^/^]+', 1, 9) as iLPN,
+        regexp_substr(to_char(data), '[^/^]+', 1, 10) as oLPN,
+        regexp_substr(to_char(data), '[^/^]+', 1, 4) as wave,
+        regexp_substr(to_char(data), '[^/^]+', 1, 8) as location,
+        regexp_substr(to_char(data), '[^/^]+', 1, 11) as puts,
+        when_queued
+from cl_endpoint ce
+inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
+inner join cl_message cm         on clq.msg_id = cm.msg_id
+--where when_queued between '13-JAN-24 06.30.00.000000000 PM' and '15-JAN-24 04.30.00.000000000 AM'
+where when_queued >= sysdate - 1
+and regexp_substr(to_char(data), '[^/^]+', 1, 10) = '970907120041'
+and cm.source_id = 'WCS_USorter_ToteChute'
+order by when_queued desc;
+
+
 -- olPNs still in 'Packed' status after being scanned by SCNSHIP
 select *
 from twcc_mhe_message tmm
@@ -1101,7 +1179,7 @@ select msg_id,
        regexp_substr(to_char(data), '[^/^]+', 1, 16) as VOLUME,
        when_created
 from cl_message
-where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99033184')
+where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99007054')
 and when_created > sysdate - 5
 and event_id = '6692';
 
@@ -1139,6 +1217,16 @@ AND cm.when_created > SYSDATE -  1/24 -------change time interval
 --AND cm.source_id = '9001_9002_User_Interface' 
 ORDER BY when_queued DESC;
 
+
+-- 
+SELECT DISTINCT ( td.task_id ) 
+FROM task_dtl td, task_hdr th 
+WHERE td.task_id = th.task_id 
+AND td.invn_need_type = '50' 
+AND td.task_type = '16' 
+AND td.stat_code NOT IN ( '90', '99' ) 
+AND th.stat_code <> '10' 
+ORDER BY task_id DESC ;
 -------------------------------------------------------------------------------------------------------------------------------- CCFs, DB Locks & Sessions ----------------------------------------------------------------------------------------------------------------------------------------
 
 alter session set current_schema = DM;
