@@ -129,7 +129,7 @@ select * from prod_trkg_tran;
 -- Find allocations with tote number        
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ( '970100014788' )
+where cntr_nbr in ( '99002159' )
 and stat_code < 90
 and invn_need_type = '60';
 
@@ -139,7 +139,7 @@ and invn_need_type = '60';
 -- Problem Res will then submit chase allocations 
 select unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ( '970100021429' )
+where cntr_nbr in ( '99013564' )
 and stat_code < 90
 and invn_need_type = '52';
 
@@ -148,7 +148,7 @@ and invn_need_type = '52';
 select task_seq_nbr, cntr_nbr, task_id, carton_nbr, item_name, item_bar_code, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
 from task_dtl td, item_cbo ic
 where td.item_id = ic.item_id
-and cntr_nbr in ( '970902498589' ) 
+and cntr_nbr in ( '99002159' ) 
 and stat_code < 90
 order by task_seq_nbr asc;
 
@@ -213,21 +213,22 @@ and stat_code < 90;
 -- Find allocations with oLPNs
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where carton_nbr in ('00000197180503953982'  )
+where carton_nbr in ('00000197180504406050'  )
 and stat_code < 90;
 
     
 -- Find tasks with oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 from task_dtl
-where carton_nbr in ('00000197180503953982'  )
+where carton_nbr in ('00000197180504406050'  )
 and stat_code < 90;
+
 
 
 -- Find the INTs for the oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, invn_need_type, stat_code, user_id
 from task_dtl
-where carton_nbr in ('00000197180495732282'  );
+where carton_nbr in ('00000197180504206018'  );
 
 
 -- Check to see if there is any oLPNs that have uncompleted allocations
@@ -616,13 +617,13 @@ select * from item_cbo;
 select * from cl_message where data like '%970902504871%' order by when_created desc;
 
 -- Check the MHE Flag for OSR waves, if the MHE flag is set to 'Y' then run sys code "MHE-FLAG" to set it to 'N'
-select wave_nbr, wave_desc, mhe_flag from wave_parm where wave_nbr in ('202406160007');
+select wave_nbr, wave_desc, mhe_flag from wave_parm where wave_nbr in ('202412160010');
 
 select * from task_dtl where carton_nbr = '00000197180446733238';
 
 -- Checks to see who relesaed the wave
 select * from event_message
-where ek_wave_nbr = '202411010057'
+where ek_wave_nbr = '202412160010'
 --and user_id = 'yangj'
 --where ek_ilpn_nbr = '00000197180104880649'
 order by mod_date_time desc;
@@ -909,6 +910,8 @@ select * from cl_endpoint_queue;
 select * from twcc_mhe_message;
 select * from twcc_tote_audit;
 
+select * from cl_message where data like '%00000197180504406050%';
+
 
 -- Check the weight for each box
 -- '*****' means invalid weight 
@@ -956,7 +959,6 @@ where when_queued >= sysdate - 5
 and cm.source_id = 'USS_INDUCT_MODE'
 order by when_queued desc;
 
-select * from cl_message where data like '%99016206%';
 
 -- Check the wave for all iLPNs located in Wavebank
 select to_char(clq.msg_id) as msg_id,
@@ -1168,6 +1170,30 @@ and cl.when_created > sysdate - 2
 order by cl.when_created desc;
 
 
+-- Check the wave for all iLPNs located in OSR
+select to_char(clq.msg_id) as msg_id,
+       ce.name,
+       clq.status as status_number,
+       case when clq.status = '5' then 'Succeed'
+            when clq.status = '6' then 'Failed'
+            when clq.status = '2' then 'Ready'
+            when clq.status = '10' then 'Busy'
+            else 'Other'
+        end as status,
+        regexp_substr(to_char(data), '[^/^]+', 1, 10) as iLPN,
+        regexp_substr(to_char(data), '[^/^]+', 1, 4) as wave,
+        regexp_substr(to_char(data), '[^/^]+', 1, 7) as task_sequeance_number,
+        when_queued
+from cl_endpoint ce
+inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
+inner join cl_message cm         on clq.msg_id = cm.msg_id
+--where when_queued between '13-JAN-24 06.30.00.000000000 PM' and '15-JAN-24 04.30.00.000000000 AM'
+where when_queued >= sysdate - 10/24
+and regexp_substr(to_char(data), '[^/^]+', 1, 10) = '99007354'
+and cm.source_id = 'GTPPICKCONFIRM'
+order by when_queued desc;
+
+
 -- Find 6692 messages for transport orders
 select msg_id,
        event_id,
@@ -1179,7 +1205,7 @@ select msg_id,
        regexp_substr(to_char(data), '[^/^]+', 1, 16) as VOLUME,
        when_created
 from cl_message
-where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99007054')
+where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99038818')
 and when_created > sysdate - 5
 and event_id = '6692';
 
