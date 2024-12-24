@@ -84,8 +84,8 @@ select * from user_default;
 -- Find user with their first and last name
 select user_name, user_first_name, user_last_name, is_active
 from ucl_user
-where user_first_name like '%Trenton%'
-and user_last_name like '%Jackson';
+where user_first_name like '%Jeanette%'
+and user_last_name like '%Williams';
 
 
 -- Find the user with user name
@@ -129,7 +129,7 @@ select * from prod_trkg_tran;
 -- Find allocations with tote number        
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ( '99002159' )
+where cntr_nbr in ( '99011582' )
 and stat_code < 90
 and invn_need_type = '60';
 
@@ -139,7 +139,7 @@ and invn_need_type = '60';
 -- Problem Res will then submit chase allocations 
 select unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ( '99013564' )
+where cntr_nbr in ( '99011582' )
 and stat_code < 90
 and invn_need_type = '52';
 
@@ -148,7 +148,7 @@ and invn_need_type = '52';
 select task_seq_nbr, cntr_nbr, task_id, carton_nbr, item_name, item_bar_code, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
 from task_dtl td, item_cbo ic
 where td.item_id = ic.item_id
-and cntr_nbr in ( '99002159' ) 
+and cntr_nbr in ( '99011582' ) 
 and stat_code < 90
 order by task_seq_nbr asc;
 
@@ -188,7 +188,7 @@ order by task_seq_nbr;
 select unique td.cntr_nbr, td.task_id, td.carton_nbr, lh.dsp_locn, td.invn_need_type, td.task_type, td.stat_code, td.create_date_time, td.mod_date_time
 from task_dtl td, locn_hdr lh
 where td.dest_locn_id = lh.locn_id
-and td.cntr_nbr in ( '99007170' ) 
+and td.cntr_nbr in ( '99040610' ) 
 and td.stat_code < 90
 order by td.create_date_time desc;
 
@@ -213,14 +213,14 @@ and stat_code < 90;
 -- Find allocations with oLPNs
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where carton_nbr in ('00000197180504406050'  )
+where carton_nbr in ('00000197180505337353'  )
 and stat_code < 90;
 
     
 -- Find tasks with oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 from task_dtl
-where carton_nbr in ('00000197180504406050'  )
+where carton_nbr in ('00000197180505337353'  )
 and stat_code < 90;
 
 
@@ -356,7 +356,7 @@ from task_dtl td, item_cbo ic, locn_hdr lh
 where td.item_id = ic.item_id
 and td.pull_locn_id = lh.locn_id
 and td.stat_code < 90
-and task_id = '92965117'
+and task_id = '93137864'
 order by task_seq_nbr;
 
 
@@ -614,12 +614,10 @@ select * from arch_wave_parm;
 select * from lpn;
 select * from item_cbo;
 
-select * from cl_message where data like '%970902504871%' order by when_created desc;
 
 -- Check the MHE Flag for OSR waves, if the MHE flag is set to 'Y' then run sys code "MHE-FLAG" to set it to 'N'
 select wave_nbr, wave_desc, mhe_flag from wave_parm where wave_nbr in ('202412160010');
 
-select * from task_dtl where carton_nbr = '00000197180446733238';
 
 -- Checks to see who relesaed the wave
 select * from event_message
@@ -654,6 +652,11 @@ select * from task_dtl where task_id = '86818484';
 
 select * from wave_parm where wave_nbr = '202406010022';
 select count(*), stat_code from task_dtl where task_genrtn_ref_nbr = '202406010023' group by stat_code;
+
+
+-- Find the chase wave that is tied to the oLPN(s), if NULL then have ops call a chase wave
+select tc_lpn_id, tc_order_id, ship_wave_nbr, chase_wave_nbr, stat_code, created_dttm, last_updated_dttm
+from picking_short_item;
     
     
 -- Check history for released waves
@@ -1189,7 +1192,7 @@ inner join cl_endpoint_queue clq on ce.endpoint_id = clq.endpoint_id
 inner join cl_message cm         on clq.msg_id = cm.msg_id
 --where when_queued between '13-JAN-24 06.30.00.000000000 PM' and '15-JAN-24 04.30.00.000000000 AM'
 where when_queued >= sysdate - 10/24
-and regexp_substr(to_char(data), '[^/^]+', 1, 10) = '99007354'
+and regexp_substr(to_char(data), '[^/^]+', 1, 10) = '99049296'
 and cm.source_id = 'GTPPICKCONFIRM'
 order by when_queued desc;
 
@@ -1205,7 +1208,7 @@ select msg_id,
        regexp_substr(to_char(data), '[^/^]+', 1, 16) as VOLUME,
        when_created
 from cl_message
-where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99038818')
+where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99040610')
 and when_created > sysdate - 5
 and event_id = '6692';
 
