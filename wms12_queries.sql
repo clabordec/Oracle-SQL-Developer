@@ -129,7 +129,7 @@ select * from prod_trkg_tran;
 -- Find allocations with tote number        
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ( '99011582' )
+where cntr_nbr in ( '970907317016' )
 and stat_code < 90
 and invn_need_type = '60';
 
@@ -139,7 +139,7 @@ and invn_need_type = '60';
 -- Problem Res will then submit chase allocations 
 select unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 from alloc_invn_dtl
-where cntr_nbr in ( '99011582' )
+where cntr_nbr in ( '970907317016' )
 and stat_code < 90
 and invn_need_type = '52';
 
@@ -148,17 +148,34 @@ and invn_need_type = '52';
 select task_seq_nbr, cntr_nbr, task_id, carton_nbr, item_name, item_bar_code, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
 from task_dtl td, item_cbo ic
 where td.item_id = ic.item_id
-and cntr_nbr in ( '99011582' ) 
+and cntr_nbr in ( '970902505293' ) 
 and stat_code < 90
 order by task_seq_nbr asc;
+
+
+-- Find item that is not assigned to a tote for task
+select td.task_id, td.cntr_nbr, im.item_name, im.item_bar_code, td.batch_nbr, td.qty_alloc, td.stat_code, td.user_id, td.mod_date_time,
+        (select max(cntr_nbr) ||', '||min(cntr_nbr) 
+         from task_dtl td2 
+         where td2.task_id = td.task_id 
+         and td2.cntr_nbr is not null 
+         and td2.stat_code = 40) "EXPECTED TOTE NBR"
+from task_hdr th, task_dtl td, item_cbo im 
+where th.task_id = td.task_id 
+and td.item_id = im.item_id
+and th.task_type = '93' 
+and td.stat_code = 40 
+and td.invn_need_type = 3 
+and td.cntr_nbr is null;
 
 
 -- Check the INTs for a certain case
 select unique cntr_nbr, invn_need_type, carton_nbr, task_genrtn_ref_nbr, stat_code, create_date_time, mod_date_time
 from alloc_invn_dtl
-where cntr_nbr in ('970100014788'  )
+where cntr_nbr in ('970907317016'  )
 --and stat_code < 90
 and mod_date_time > sysdate - 2
+--and carton_nbr = '00000197180508023581'
 order by mod_date_time desc;
 
 
@@ -213,14 +230,14 @@ and stat_code < 90;
 -- Find allocations with oLPNs
 select unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 from alloc_invn_dtl
-where carton_nbr in ('00000197180505337353'  )
+where carton_nbr in ('00000197180508023581'  )
 and stat_code < 90;
 
     
 -- Find tasks with oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 from task_dtl
-where carton_nbr in ('00000197180505337353'  )
+where carton_nbr in ('00000197180508023581'  )
 and stat_code < 90;
 
 
@@ -228,7 +245,7 @@ and stat_code < 90;
 -- Find the INTs for the oLPN
 select unique cntr_nbr, task_cmpl_ref_nbr, invn_need_type, stat_code, user_id
 from task_dtl
-where carton_nbr in ('00000197180504206018'  );
+where carton_nbr in ('00000197180508023581'  );
 
 
 -- Check to see if there is any oLPNs that have uncompleted allocations
@@ -890,7 +907,7 @@ order by s.delivery_end_dttm desc;
 select l.tc_lpn_id, l.tc_parent_lpn_id, o.assigned_static_route_id, l.shipment_id, l.tc_shipment_id, l.tracking_nbr, o.d_facility_alias_id, l.wave_nbr
 from orders o, lpn l
 where o.tc_order_id = l.tc_order_id
-and tc_lpn_id in ('00000197181310933105','00000197181310654437','00000197181310934195','00000197181310900831','00000197181310688456','00000197181310981373','00000197181310580316' )
+and tc_lpn_id in ('00000197181311654344' )
 order by o.assigned_static_route_id;
 
     
@@ -1208,7 +1225,7 @@ select msg_id,
        regexp_substr(to_char(data), '[^/^]+', 1, 16) as VOLUME,
        when_created
 from cl_message
-where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99040610')
+where regexp_substr(to_char(data), '[^/^]+', 1, 12) in ('99027070')
 and when_created > sysdate - 5
 and event_id = '6692';
 
@@ -1256,6 +1273,7 @@ AND td.task_type = '16'
 AND td.stat_code NOT IN ( '90', '99' ) 
 AND th.stat_code <> '10' 
 ORDER BY task_id DESC ;
+
 -------------------------------------------------------------------------------------------------------------------------------- CCFs, DB Locks & Sessions ----------------------------------------------------------------------------------------------------------------------------------------
 
 alter session set current_schema = DM;
