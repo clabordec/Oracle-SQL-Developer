@@ -70,6 +70,8 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LPN%' AND COLUMN_NAME LIKE '%
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%ORDERS%' AND COLUMN_NAME LIKE '%PO%' AND OWNER = 'DM';
 
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LPN%' AND COLUMN_NAME LIKE '%PALLET%' AND OWNER = 'DM';
+
 -------------------------------------------------------------------------------------------------------------------------------- Users ----------------------------------------------------------------------------------------------------------------------------------------
 
 ALTER SESSION SET current_schema = DM;
@@ -129,7 +131,7 @@ SELECT * FROM prod_trkg_tran;
 -- Find allocatiONs WITH tote number        
 SELECT unique cntr_nbr, invn_need_type, cartON_nbr, stat_code
 FROM alloc_invn_dtl
-WHERE cntr_nbr in ( '00006644541942446032' )
+WHERE cntr_nbr in ( '00006644541971151204' )
 AND stat_code < 90
 AND invn_need_type = '60';
 
@@ -139,18 +141,17 @@ AND invn_need_type = '60';
 -- Problem Res will then submit chASe allocatiONs 
 SELECT unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 FROM alloc_invn_dtl
-WHERE cntr_nbr in ( '00006644541942446032' )
+WHERE cntr_nbr in ( '00006644541971151204' )
 AND stat_code < 90
 AND invn_need_type = '52';
 
-select unique task_id, cntr_nbr from task_dtl where task_genrtn_ref_nbr = '202501190028' and stat_code < 90;
 
 -- Find tasks for iLPN/totes
 SELECT task_seq_nbr, cntr_nbr, task_id, cartON_nbr, item_name, item_bar_code, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
 FROM task_dtl td
 JOIN item_cbo ic
 ON td.item_id = ic.item_id
-AND cntr_nbr in ( '00006644541942446032' ) 
+AND cntr_nbr in ( '00006644541971151204' ) 
 AND stat_code < 90
 ORDER BY task_seq_nbr ASc;
 
@@ -174,7 +175,7 @@ AND td.cntr_nbr is null;
 -- Check the INTs for a certain CASE
 SELECT unique cntr_nbr, invn_need_type, cartON_nbr, task_genrtn_ref_nbr, stat_code, create_date_time, mod_date_time
 FROM alloc_invn_dtl
-WHERE cntr_nbr in ('970907317016'  )
+WHERE cntr_nbr in ('99038729'  )
 --AND stat_code < 90
 AND mod_date_time > sysdate - 2
 --AND cartON_nbr = '00000197180508023581'
@@ -207,7 +208,7 @@ ORDER BY task_seq_nbr;
 SELECT unique td.cntr_nbr, td.task_id, td.cartON_nbr, lh.dsp_locn, td.invn_need_type, td.task_type, td.stat_code, td.create_date_time, td.mod_date_time
 FROM task_dtl td, locn_hdr lh
 WHERE td.dest_locn_id = lh.locn_id
-AND td.cntr_nbr in ( '99040610' ) 
+AND td.cntr_nbr in ( '99038729' ) 
 AND td.stat_code < 90
 ORDER BY td.create_date_time DESC;
 
@@ -229,17 +230,17 @@ AND batch_nbr = 'EC002'
 AND stat_code < 90;
 
 
--- Find allocatiONs WITH oLPNs
-SELECT unique cntr_nbr, invn_need_type, cartON_nbr, stat_code
+-- Find allocations WITH oLPNs
+SELECT unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 FROM alloc_invn_dtl
-WHERE cartON_nbr in ('00000197180509882736'  )
+WHERE cartON_nbr in ('00000197180514412652'  )
 AND stat_code < 90;
 
     
--- Find tasks WITH oLPN
+-- Find tasks with oLPN
 SELECT unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 FROM task_dtl
-WHERE cartON_nbr in ('00000197180509882736'  )
+WHERE cartON_nbr in ('00000197180514412652'  )
 AND stat_code < 90;
 
 
@@ -247,7 +248,7 @@ AND stat_code < 90;
 -- Find the INTs for the oLPN
 SELECT unique cntr_nbr, task_cmpl_ref_nbr, invn_need_type, stat_code, user_id
 FROM task_dtl
-WHERE cartON_nbr in ('00000197180508023581'  );
+WHERE cartON_nbr in ('00000197180513349942'  );
 
 
 -- Check to see if there is any oLPNs that have uncompleted allocatiONs
@@ -375,7 +376,7 @@ FROM task_dtl td, item_cbo ic, locn_hdr lh
 WHERE td.item_id = ic.item_id
 AND td.pull_locn_id = lh.locn_id
 AND td.stat_code < 90
-AND task_id = '93137864'
+AND task_id = '94398676'
 ORDER BY task_seq_nbr;
 
 
@@ -673,9 +674,10 @@ SELECT * FROM wave_parm WHERE wave_nbr = '202501260065';
 SELECT COUNT(*), stat_code FROM task_dtl WHERE task_genrtn_ref_nbr = '202501260065' GROUP BY stat_code;
 
 
--- Find the chASe wave that is tied to the oLPN(s), if NULL then have ops call a chASe wave
+-- Find the chase wave that is tied to the oLPN(s), if NULL then have ops call a chASe wave
 SELECT tc_lpn_id, tc_order_id, ship_wave_nbr, chASe_wave_nbr, stat_code, created_dttm, lASt_updated_dttm
-FROM picking_short_item;
+FROM picking_short_item
+WHERE tc_lpn_id = '00000197180513349942';
     
     
 -- Check history for releASed waves
@@ -704,7 +706,7 @@ SELECT o.lASt_updated_dttm, o.* FROM orders o ORDER BY o.lASt_updated_dttm DESC;
 SELECT l.tc_lpn_id, o.bill_to_name
 FROM orders o, lpn l
 WHERE o.tc_order_id = l.tc_order_id
-AND tc_lpn_id = '00000197180496505113';
+AND tc_lpn_id = '00000197180514419507';
 
 
 -- Retrieve the orders
@@ -1269,7 +1271,7 @@ SELECT msg_id,
        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 16) AS VOLUME,
        WHEN_created
 FROM cl_message
-WHERE REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 12) in ('99014489')
+WHERE REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 12) in ('99047571')
 AND WHEN_created > sysdate - 5
 AND event_id = '6692';
 
