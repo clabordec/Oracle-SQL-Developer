@@ -46,7 +46,7 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%ASN%' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%ARCHIVE%' AND OWNER = 'DM';
 
-SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LOG  %' AND OWNER = 'DM';
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LOG%' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE 'MSG%' AND OWNER = 'DM';
 
@@ -54,6 +54,13 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%MANIFEST%' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE 'PICKING%' AND OWNER = 'DM';
 
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%USER%' AND OWNER = 'DM';
+
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%CLIENT%';
+
+SELECT * FROM VOCOLLECT_USER_LOGIN;
+
+SELECT * FROM SYS.DBA_HIST_IC_DEVICE_STATS;
 
 -- Find certain tables AND columns
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME = 'SHIPMENT' AND COLUMN_NAME LIKE '%GROUP%' AND OWNER = 'DM';
@@ -83,17 +90,17 @@ SELECT * FROM access_cONtrol;
 SELECT * FROM user_default;
 
 
--- Find user WITH their first AND lASt name
+-- Find user with their first and last name
 SELECT user_name, user_first_name, user_lASt_name, is_active
 FROM ucl_user
-WHERE user_first_name like '%Christopher%'
-AND user_lASt_name like '%Roundy';
+WHERE user_first_name like '%Claudia%'
+AND user_last_name like '%Gutierrez Carbajal%';
 
 
 -- Find the user WITH user name
 SELECT user_name, user_first_name, user_lASt_name, is_active
 FROM ucl_user
-WHERE user_name in ('316019');
+WHERE user_name in ('360674');
 
 
 -- 
@@ -113,7 +120,7 @@ AND uu.created_dttm >= sysdate - 9999
 AND uu.user_first_name not like 'TERM%'
 ORDER BY USER_ID;
 
--------------------------------------------------------------------------------------------------------------------------------- AllocatiONs & tasks ----------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------- Allocations & tasks ----------------------------------------------------------------------------------------------------------------------------------------
 
 ALTER SESSION SET current_schema = DM;
 
@@ -127,11 +134,11 @@ SELECT * FROM prod_trkg_tran;
 -- Find Totes
 -- cntr_nbr = iLPNs
 -- task_cmp_ref_nbr = oLPNs
--- stat_code < 90 to check for open allocatiONs
+-- stat_code < 90 to check for open allocations
 -- Find allocatiONs WITH tote number        
 SELECT unique cntr_nbr, invn_need_type, cartON_nbr, stat_code
 FROM alloc_invn_dtl
-WHERE cntr_nbr in ( '00006644541971151204' )
+WHERE cntr_nbr in ( '99001794' )
 AND stat_code < 90
 AND invn_need_type = '60';
 
@@ -141,22 +148,43 @@ AND invn_need_type = '60';
 -- Problem Res will then submit chASe allocatiONs 
 SELECT unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 FROM alloc_invn_dtl
-WHERE cntr_nbr in ( '00006644541971151204' )
+WHERE cntr_nbr in ( '99001794' )
 AND stat_code < 90
 AND invn_need_type = '52';
 
+SELECT * FROM locn_hdr;
+SELECT * FROM task_dtl;
+
 
 -- Find tasks for iLPN/totes
-SELECT task_seq_nbr, cntr_nbr, task_id, cartON_nbr, item_name, item_bar_code, invn_need_type, task_type, stat_code, create_date_time, mod_date_time
+SELECT task_seq_nbr, 
+       cntr_nbr, 
+       task_id, 
+       task_genrtn_ref_nbr, 
+       task_cmpl_ref_nbr,
+       lh.dsp_locn as current_destination,
+       lh2.dsp_locn as destination_location,
+       carton_nbr, 
+       item_name, 
+       item_bar_code, 
+       invn_need_type, 
+       task_type, 
+       td.stat_code, 
+       td.create_date_time, 
+       td.mod_date_time
 FROM task_dtl td
 JOIN item_cbo ic
 ON td.item_id = ic.item_id
-AND cntr_nbr in ( '00006644541971151204' ) 
+JOIN locn_hdr lh
+ON td.pull_locn_id = lh.locn_id
+JOIN locn_hdr lh2
+ON td.dest_locn_id = lh2.locn_id
+AND cntr_nbr in ( '00006644542076408156','00006644542076408200','00007160417358256636','00007160417358256506','00006644542076408279','00006644542076408323','00006644542076406688','00006644542114478523','00007160417358256568','00007160417358256513','00007160417358245173','00006644542076408118' ) 
 AND stat_code < 90
-ORDER BY task_seq_nbr ASc;
+ORDER BY task_seq_nbr ASC;
 
 
--- Find item that is not ASsigned to a tote for task
+-- Find item that is not assigned to a tote for task
 SELECT td.task_id, td.cntr_nbr, im.item_name, im.item_bar_code, td.batch_nbr, td.qty_alloc, td.stat_code, td.user_id, td.mod_date_time,
         (SELECT MAX(cntr_nbr) ||', '||MIN(cntr_nbr) 
          FROM task_dtl td2 
@@ -175,14 +203,14 @@ AND td.cntr_nbr is null;
 -- Check the INTs for a certain CASE
 SELECT unique cntr_nbr, invn_need_type, cartON_nbr, task_genrtn_ref_nbr, stat_code, create_date_time, mod_date_time
 FROM alloc_invn_dtl
-WHERE cntr_nbr in ('99038729'  )
+WHERE cntr_nbr in ('99032043'  )
 --AND stat_code < 90
 AND mod_date_time > sysdate - 2
 --AND cartON_nbr = '00000197180508023581'
 ORDER BY mod_date_time DESC;
 
 
--- Find the 07 task WITH the wave number AND locatiON
+-- Find the 07 task with the wave number and location
 SELECT td.task_seq_nbr, td.task_id, aid.invn_need_type, aid.cntr_nbr, ic.item_name, ic.item_bar_code, td.task_genrtn_ref_nbr, ic.item_name, td.stat_code, lh.dsp_locn AS pull_locatiON, lh2.dsp_locn AS destinatiON_loactiON
 FROM task_dtl td
 JOIN locn_hdr lh
@@ -195,11 +223,11 @@ JOIN alloc_invn_dtl aid
 ON td.alloc_invn_dtl_id = aid.alloc_invn_dtl_id
 JOIN item_cbo ic
 ON td.item_id = ic.item_id
--- WHERE task_id = '90854113'
-WHERE td.task_genrtn_ref_nbr like '%202410230072%'
+WHERE task_id = '096017992'
+-- WHERE td.task_genrtn_ref_nbr like '%202410230072%'
 --WHERE lh.dsp_locn = 'PE52210C03'
-AND lh.dsp_locn = 'PE25505A07'
---AND td.stat_code < 90
+AND lh.dsp_locn = 'PE21704A03'
+AND td.stat_code < 90
 ORDER BY task_seq_nbr;
 
 
@@ -208,7 +236,7 @@ ORDER BY task_seq_nbr;
 SELECT unique td.cntr_nbr, td.task_id, td.cartON_nbr, lh.dsp_locn, td.invn_need_type, td.task_type, td.stat_code, td.create_date_time, td.mod_date_time
 FROM task_dtl td, locn_hdr lh
 WHERE td.dest_locn_id = lh.locn_id
-AND td.cntr_nbr in ( '99038729' ) 
+AND td.cntr_nbr in ( '99001989', '99035801' ) 
 AND td.stat_code < 90
 ORDER BY td.create_date_time DESC;
 
@@ -230,25 +258,26 @@ AND batch_nbr = 'EC002'
 AND stat_code < 90;
 
 
--- Find allocations WITH oLPNs
+-- Find allocations with oLPNs
 SELECT unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 FROM alloc_invn_dtl
-WHERE cartON_nbr in ('00000197180514412652'  )
+WHERE carton_nbr in ('00000197180545124944')
 AND stat_code < 90;
 
     
 -- Find tasks with oLPN
 SELECT unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 FROM task_dtl
-WHERE cartON_nbr in ('00000197180514412652'  )
+WHERE cartON_nbr in ('00000197180545124944'  )
 AND stat_code < 90;
 
+SELECT tc_lpn_id, ship_wave_nbr, chase_wave_nbr FROM picking_short_item WHERE tc_lpn_id IN ('00000197180545124944');
 
 
 -- Find the INTs for the oLPN
 SELECT unique cntr_nbr, task_cmpl_ref_nbr, invn_need_type, stat_code, user_id
 FROM task_dtl
-WHERE cartON_nbr in ('00000197180513349942'  );
+WHERE cartON_nbr in ('00000197181313779380'  );
 
 
 -- Check to see if there is any oLPNs that have uncompleted allocatiONs
@@ -258,7 +287,7 @@ WHERE exists (SELECT 1 FROM task_dtl td WHERE aid.alloc_invn_dtl_id = td.alloc_i
 AND stat_code < 90;
 
 
--- Check PTS CASEs
+-- Check PTS cases
 SELECT tc_lpn_id, lpn_facility_status, total_lpn_qty, dsp_locn 
 FROM lpn lp, locn_hdr lh 
 WHERE lp.curr_sub_locn_id = lh.locn_id
@@ -284,11 +313,11 @@ AND tc_lpn_id in (SELECT TO_CHAR(SUBSTR(data,49,20))
 ORDER BY dsp_locn ASc;
 
 
----Needs a 6691
+-- Needs a 6691
 SELECT
 --*
  DISTINCT
-    ( tmm.cartON_nbr )
+    ( tmm.carton_nbr )
 FROM
     twcc_mhe_message tmm
 WHERE
@@ -315,45 +344,88 @@ WHERE
     );
 
 
----New stuff that will jackpot if it hAS this issue, try to catch it before it jackpots Put to store RF to allocate then 6691 to give destinatiONs
-SELECT
-    td.task_id,
-    td.cntr_nbr,
-    td.task_genrtn_ref_nbr,
-    td.create_date_time,
-    locn_clASs,
-    td.stat_code,
-    lh.dsp_locn
-FROM
-    task_dtl td,
-    lpn l,
-    locn_hdr lh
-WHERE
-    lh.locn_id = l.curr_sub_locn_id
-    AND td.cntr_nbr = l.tc_lpn_id
-    AND td.invn_need_type = '53'
-    AND td.stat_code = '90'
-    AND l.lpn_facility_status = '30'
-    AND l.tc_lpn_id NOT IN (
-        SELECT
-            cntr_nbr
-        FROM
-            alloc_invn_dtl
-        WHERE
-            invn_need_type = '60'
+-- New stuff that will jackpot if it has this issue, try to catch it before it jackpots Put to store RF to allocate then 6691 to give destinations
+SELECT td.task_id,
+       td.cntr_nbr,
+       td.task_genrtn_ref_nbr,
+       td.create_date_time,
+       locn_clASs,
+       td.stat_code,
+       lh.dsp_locn
+FROM task_dtl td,
+     lpn l,
+     locn_hdr lh
+WHERE lh.locn_id = l.curr_sub_locn_id
+AND td.cntr_nbr = l.tc_lpn_id
+AND td.invn_need_type = '53'
+AND td.stat_code = '90'
+AND l.lpn_facility_status = '30'
+AND l.tc_lpn_id NOT IN (
+        SELECT cntr_nbr
+        FROM alloc_invn_dtl
+        WHERE invn_need_type = '60'
     )
     AND td.task_genrtn_ref_nbr > '202402230030'
     AND NOT EXISTS (
-        SELECT
-            e.ek_ilpn_nbr
-        FROM
-            event_message e
-        WHERE
-            e.ek_ilpn_nbr = td.cntr_nbr
-            AND e.event_id = '6691'
+        SELECT e.ek_ilpn_nbr
+        FROM event_message e
+        WHERE e.ek_ilpn_nbr = td.cntr_nbr
+        AND e.event_id = '6691'
     )
 ORDER BY
     task_genrtn_ref_nbr ASC;
+
+select * 
+from cl_message where event_id = 6333;
+
+
+SELECT td.task_id, td.cntr_nbr, td.stat_code, ic.item_name, item_bar_code, lh.dsp_locn
+FROM task_dtl td
+JOIN item_cbo ic
+ON td.item_id = ic.item_id
+JOIN locn_hdr lh
+ON td.pull_locn_id = lh.locn_id
+JOIN locn_hdr lh2
+ON td.dest_locn_id = lh2.locn_id
+WHERE task_id = '96839198' 
+AND stat_code < 90
+ORDER BY dsp_locn;
+
+SELECT * FROM cl_message WHERE data LIKE '%00001946540959185750%' AND when_created > sysdate - 1/24;
+
+
+-- Check for USS missing message
+-- Complete the task with task group PCK
+-- Submit 6333 event message
+WITH a AS (
+    SELECT td.task_id, 
+           ic.item_bar_code
+    FROM task_dtl   td, task_hdr   th, item_cbo   ic
+    WHERE td.task_id = th.task_id
+    AND td.item_id = ic.item_id
+    AND th.mod_date_time < sysdate -.01 / 24
+    AND td.task_type = '16'
+    AND td.invn_need_type = '50'
+    AND td.stat_code = '0'
+    AND th.stat_code IN ('40','30','15','13')
+    AND EXISTS (
+            SELECT event_id
+            FROM event_message
+            WHERE event_id = '6690'
+        )
+), b AS (
+    SELECT task_id,
+           task_cmpl_ref_nbr
+    FROM task_dtl   td, lpn        l
+    WHERE td.task_cmpl_ref_nbr = l.tc_lpn_id
+    AND l.lpn_facility_status = '64'
+    AND td.task_cmpl_ref_nbr LIKE '97%'
+)
+SELECT DISTINCT ( a.task_id ),
+       b .task_cmpl_ref_nbr,
+       a.item_bar_code
+FROM a, b
+WHERE a.task_id = b.task_id;
 
 
 -- Find CASEs that do not have the same allocated quantity AS the wm allocated quantity
@@ -362,15 +434,15 @@ SELECT td.task_id, td.invn_need_type, td.stat_code, td.qty_alloc, wi.wm_allocate
 FROM task_dtl td, wm_inventory wi, lpn_detail ld
 WHERE td.cntr_nbr = wi.tc_lpn_id
 AND ld.lpn_id = wi.lpn_id
-AND cntr_nbr in ('PE21406C01')
+AND cntr_nbr in ('PDF0214D05')
 --AND td.task_id = '75649165'
 --AND td.stat_code = '40'
 AND td.qty_alloc - wi.wm_allocated_qty <> 0;
 
 
 -- Get the barcodes for a specific task for chutes
--- This is needed WHENever the chute closer is HAVING issues closing out the chute
--- Use the PCK task group WHEN completing the task
+-- This is needed whenever the chute closer is having issues closing out the chute
+-- Use the PCK task group when completing the task
 SELECT task_seq_nbr, task_id, item_name, item_bar_code, lh.dsp_locn
 FROM task_dtl td, item_cbo ic, locn_hdr lh
 WHERE td.item_id = ic.item_id
@@ -380,7 +452,7 @@ AND task_id = '94398676'
 ORDER BY task_seq_nbr;
 
 
--- Find a iLPN bASed off of the item barcode
+-- Find a iLPN based off of the item barcode
 SELECT *
 FROM item_cbo ic, lpn l
 WHERE ic.item_id = l.item_id 
@@ -388,15 +460,15 @@ AND item_bar_code = '197347082070'
 AND tc_lpn_id like '0000197%';
 
     
--- Find the tasks ASsociated WITH the the specific wave number
+-- Find the tasks associated with the the specific wave number
 SELECT unique (cntr_nbr), invn_need_type, task_id, stat_code
 FROM task_dtl
 WHERE task_genrtn_ref_nbr = '202421080038' -- Change depENDing ON your problem wave
 --AND task_type = '93'
 AND stat_code < '90';
+select * from event_message where ek_ilpn_nbr = '970902500336';
 
-
--- Check to see if the task wAS split into several totes
+-- Check to see if the task was split into several totes
 SELECT td.task_id,
        aid.cntr_nbr,
        aid.invn_need_type,
@@ -410,22 +482,26 @@ ON aid.alloc_invn_dtl_id = td.alloc_invn_dtl_id
 WHERE task_id = '';
 
 
--- Find task FROM item AND locatiON
+-- Find task from item and locatiON
 SELECT t.task_id, t.cntr_nbr, t.batch_nbr, t.invn_need_type, t.task_genrtn_ref_nbr, t.task_cmpl_ref_nbr, t.stat_code, l.locn_brcd, i.item_name, i.DESCriptiON
 FROM task_dtl t, locn_hdr l, item_cbo i
 WHERE t.dest_locn_id = l.locn_id
 AND t.item_id = i.item_id
-AND l.dsp_locn = 'PE21406C01'
+AND l.dsp_locn = 'PDF0214D05'
 -- AND i.item_name = '2O934710 IVY 2T'
 AND  stat_code < 90;
 
 
--- Find the open allocatiON WITH a specific locatiON AND item
+select * from locn_hdr where dsp_locn = 'PDF0214D05';
+select * from wm_inventory where location_id = '100337474';
+select * from item_cbo where item_id = '3415013';
+
+-- Find the open allocation with a specific locatiON AND item
 SELECT aid.cntr_nbr, aid.invn_need_type, aid.task_genrtn_ref_code, aid.task_cmpl_ref_code, i.item_name, lh.dsp_locn, lh.create_date_time
 FROM alloc_invn_dtl aid, locn_hdr lh, item_cbo i
 WHERE aid.pull_locn_id = lh.locn_id
 AND aid.item_id = i.item_id
-AND lh.dsp_locn in ('PE03124G11')
+AND lh.dsp_locn in ('PDF0214D05')
 --AND item_name = '1P291710 ASST 18M'
 AND stat_code < 90;
 
@@ -443,7 +519,7 @@ SELECT * FROM int_path_defn WHERE nxt_work_area = 'PSG1' ORDER BY create_date_ti
 SELECT * FROM int_path_defn WHERE invn_need_type = '2' ORDER BY create_date_time DESC;
 
 
--- Check locatiON TBF quantity
+-- Check location TBF quantity
 SELECT lh.dsp_locn, 
        ic.item_name, 
        ic.DESCriptiON, 
@@ -456,22 +532,22 @@ INNER JOIN wm_inventory wi
 ON lh.locn_id = wi.locatiON_id
 INNER JOIN item_cbo ic
 ON wi.item_id = ic.item_id
-WHERE dsp_locn = 'PE15505B01';
+WHERE dsp_locn = 'PDF0205B02';
 
 
--- Pick locatiONs 
+-- Pick locations 
 SELECT locn_brcd, dsp_locn, locn_pick_seq, lASt_frozn_date_time, lASt_cnt_date_time, cycle_cnt_pENDing, prt_label_flag, user_id
 FROM locn_hdr
-WHERE locn_brcd in ('PE15505B01?', 'PE15505B01?');
+WHERE locn_brcd in ('PDF0205B02?', 'PDF0205B02?');
 
 
--- Resevere locatiONs
+-- Resevere locations
 SELECT locn_id, locn_brcd, dsp_locn, locn_pick_seq, lASt_frozn_date_time, lASt_cnt_date_time, cycle_cnt_pENDing, prt_label_flag, user_id
 FROM locn_hdr
 WHERE LOCN_BRCD between 'RPT5910A01?' AND 'RPT5958B03?';
 
 
--- Get the list of locatiONs WITH quantity inside of them
+-- Get the list of locations with quantity inside of them
 SELECT distinct dsp_locn
 FROM locn_hdr lh 
 INNER JOIN wm_inventory wi
@@ -480,16 +556,29 @@ WHERE locn_brcd between 'RPT1715A01?' AND 'RPT1715A01?'
 ORDER BY 1;
 
 
--- Check to see which locatoin hAS a task. 
--- If you're rebuilding a locatiON(s) the process is the same: check for any tasks, complete the tasks then rebuild the locatiON.
+-- Check if the DF location has a DP lock on it
+-- If not, then assign the following item that was provied in the email, if not then ask Wave Plan or IC for that item
+-- Then lock the location with the Pick Locatins UI, lock name is: Dynamic Pick Lock
+SELECT lh.dsp_locn, item_id, pikng_lock_code
+FROM pick_locn_dtl pld,
+     locn_hdr lh
+WHERE pld .locn_id = lh.locn_id
+AND dsp_locn = 'PDF0205D02';
+
+-- Item ID for the DF location
+SELECT * FROM item_cbo WHERE item_id = '3416465';
+
+
+-- Checks tasks within a location. 
+-- If you're rebuilding a location(s) the process is the same: check for any tasks, complete the tasks then rebuild the location.
 SELECT t.task_id, t.cntr_nbr, t.task_cmpl_ref_nbr, t.task_genrtn_ref_nbr, t.batch_nbr, t.invn_need_type, t.stat_code, l.locn_brcd, l.dsp_locn, l.lASt_cnt_date_time, l.user_id
 FROM task_dtl t, locn_hdr l
 WHERE t.pull_locn_id = l.locn_id
-AND l.dsp_locn in ('RCS4903G04'  )
+AND l.dsp_locn in ('PDF0205B02'  )
 AND t.stat_code < 90;
 
 
--- 
+-- -- Check to see which locatoin has a task, with a specific item
 SELECT t.task_id, t.cntr_nbr, t.task_cmpl_ref_nbr, t.task_genrtn_ref_nbr, i.item_name, t.batch_nbr, t.invn_need_type, t.stat_code, l.locn_brcd, l.dsp_locn, l.lASt_cnt_date_time, l.user_id
 FROM task_dtl t, locn_hdr l, item_cbo i
 WHERE t.pull_locn_id = l.locn_id
@@ -499,7 +588,7 @@ AND i.item_name = '1R006710 T 6M'
 AND t.stat_code < 90;
 
 
--- Find the orders, tasks, AND item ASsociated WITH the truck number
+-- Find the orders, tasks, and item associated with the truck number
 SELECT p.tran_type, p.tran_code, p.tran_nbr, p.cntr_nbr, p.nbr_of_CASEs, p.nbr_units, o.tc_order_id, o.order_status, t.task_id, i.item_name, i.DESCriptiON
 FROM prod_trkg_tran p, orders o, task_dtl t, item_cbo i
 WHERE o.tc_order_id = p.tc_order_id
@@ -507,7 +596,7 @@ AND t.task_id = p.task_id
 AND i.item_id = p.item_id;
 
 
--- Find the lpn ASsocaited WITH locatiON AND item 
+-- Find the lpn assocaited with location and item 
 SELECT l.tc_lpn_id, l.lpn_status, l.lpn_facility_status, i.item_name, lh.dsp_locn, l.lpn_status_updated_dttm, lh.create_date_time, lh.lASt_frozn_date_time, lh.lASt_cnt_date_time,
        CASE WHEN l.lpn_facility_status = '96' then 'iLPN cONSUMed to Active' ELSE 'Other' END AS lpn_DESCriptiON,
        lfs.inbound_outbound_indicator
@@ -515,7 +604,7 @@ FROM locn_hdr lh, lpn l, item_cbo i, lpn_facility_status lfs
 WHERE lh.locn_id = l.curr_sub_locn_id
 AND l.item_id = i.item_id
 AND l.lpn_facility_status = lfs.lpn_facility_status
-AND lh.dsp_locn in ('PE21406C01')
+AND lh.dsp_locn in ('PDF0205B02')
 ORDER BY lpn_status_updated_dttm DESC;
 --AND i.item_name = '3P441010 GY 5';
 
@@ -536,7 +625,7 @@ WHERE l.tc_ASn_id = a.tc_ASn_id
 AND l.tc_lpn_id in ('00006644541894037692', '00006644541894042597', '00006644541894042580', '00006644541894041448', '00006644541894041828', '00006644541894037692');
 
 
--- Find the allocatiONs for the lpn ASsociated WITH the specified wave
+-- Find the allocations for the lpn associated with the specified wave
 SELECT aid.cntr_nbr, aid.invn_need_type, aid.stat_code, l.tc_lpn_id, l.lpn_facility_status, l.lpn_status, aid.batch_nbr, w.wave_nbr
 FROM alloc_invn_dtl aid, lpn l, wave_parm w
 WHERE aid.task_cmpl_ref_nbr = l.tc_lpn_id
@@ -544,7 +633,7 @@ AND l.wave_nbr = w.wave_nbr
 AND aid.cntr_nbr is not null;
 
 
--- Find the lpn status bASed ON the item
+-- Find the lpn status based on the item
 SELECT l.lpn_id, l.tc_lpn_id, l.tc_reference_lpn_id, l.lpn_facility_status, ls.inbound_outbound_indicator, ls.DESCriptiON, i.item_name
 FROM lpn l, lpn_facility_status ls, item_cbo i
 WHERE l.lpn_facility_status = ls.lpn_facility_status
@@ -557,7 +646,7 @@ ORDER BY i.item_name ASc;
 SELECT sched_ship_dttm FROM lpn WHERE tc_lpn_id = '00000197180351349548';
 
 
--- Check the size of the cONtainer AND make sure that it is getting deiverted to its destinatiON
+-- Check the size of the container and make sure that it is getting deiverted to its destination
 SELECT l.tc_lpn_id, l.cONtainer_size, m.mod_date_time, m.divert, m.weight
 FROM lpn l, twcc_mhe_message m
 WHERE l.tc_lpn_id = m.cartON_nbr
@@ -566,7 +655,7 @@ AND divert = 'SCNMDL'
 ORDER BY m.mod_date_time DESC;
 
 
--- Find item ASsocaited WITH the iLPN
+-- Find item assocaited with the iLPN
 SELECT cntr_nbr, cartON_nbr, item_name, item_bar_code, reqd_batch_nbr
 FROM alloc_invn_dtl aid, item_cbo i
 WHERE aid.item_id = i.item_id
@@ -574,7 +663,7 @@ AND cntr_nbr in ('00000197180356072991')
 AND stat_code < 90;
     
 
--- How to check if tote is still ON the floor
+-- How to check if tote is still on the floor
 SELECT distinct(aid.cartON_nbr), aid.cntr_nbr, aid.BATCH_NBR, l.chute_id, ic.item_bar_code, ic.item_name, aid.qty_alloc, aid.stat_code, lfs.DESCriptiON
 FROM item_cbo ic, alloc_invn_dtl aid, lpn l, lpn_facility_status lfs
 WHERE aid.item_id = ic.item_id 
@@ -641,13 +730,23 @@ SELECT wave_nbr, wave_DESC, mhe_flag FROM wave_parm WHERE wave_nbr in ('20250126
 
 -- Checks to see who relesaed the wave
 SELECT * FROM event_message
-WHERE ek_wave_nbr = '202501260053'
+WHERE ek_wave_nbr = '202506220036'
 --AND user_id = 'yangj'
 --WHERE ek_ilpn_nbr = '00000197180104880649'
 ORDER BY mod_date_time DESC;
 
+SELECT * FROM wm_inventory WHERE location_id = '100337474';
 
--- Find tasks for Waves ON the sorer
+select * from alloc_invn_dtl where task_genrtn_ref_nbr = '202504220030' order by stat_code asc;
+
+
+-- Check history for released waves
+SELECT * FROM event_message_history
+WHERE ek_wave_nbr = '202504240070'
+ORDER BY mod_date_time DESC;
+
+
+-- Find tasks for Waves on the sorter
 SELECT unique cntr_nbr, task_id, cartON_nbr, invn_need_type, task_type, stat_code, task_genrtn_ref_nbr, create_date_time, mod_date_time
 FROM task_dtl 
 WHERE task_genrtn_ref_nbr LIKE '202501240044%' 
@@ -674,16 +773,23 @@ SELECT * FROM wave_parm WHERE wave_nbr = '202501260065';
 SELECT COUNT(*), stat_code FROM task_dtl WHERE task_genrtn_ref_nbr = '202501260065' GROUP BY stat_code;
 
 
--- Find the chase wave that is tied to the oLPN(s), if NULL then have ops call a chASe wave
+-- Find the chase wave that is tied to the oLPN(s), if NULL then have ops call a chase wave
 SELECT tc_lpn_id, tc_order_id, ship_wave_nbr, chASe_wave_nbr, stat_code, created_dttm, lASt_updated_dttm
 FROM picking_short_item
-WHERE tc_lpn_id = '00000197180513349942';
-    
-    
--- Check history for releASed waves
-SELECT * FROM event_message_history
-WHERE ek_wave_nbr = '202501260065'
-ORDER BY mod_date_time DESC;
+WHERE tc_lpn_id = '00000197180539291805';
+
+
+-- Get the item name for the oLPNs located on the chase wall
+SELECT psi.tc_lpn_id,
+       psi.tc_order_id,
+       ic.item_name,
+       ic.item_bar_code,
+       psi.ship_wave_nbr,
+       psi.chase_wave_nbr
+FROM picking_short_item psi
+JOIN item_cbo ic
+ON psi.item_id = ic.item_id
+WHERE tc_lpn_id IN ('00000197180539291805');
 
 -------------------------------------------------------------------------------------------------------------------------------- Orders ----------------------------------------------------------------------------------------------------------------------------------------                                
 
@@ -697,16 +803,22 @@ SELECT * FROM tran_log_message;
 SELECT * FROM lpn_facility_status;
 SELECT * FROM lpn_status;
 
+SELECT order_id, tc_order_id, do_status
+FROM orders
+WHERE tc_order_id = 'JCAR109641083_1';
+
+SELECT * FROM ALL_TAB_COLUMNS WHERE TABLE_NAME = 'ORDERS' AND COLUMN_NAME LIKE '%STATUS%' AND OWNER = 'DM';
+
 
 -- Check the latest orders bridging in
-SELECT o.lASt_updated_dttm, o.* FROM orders o ORDER BY o.lASt_updated_dttm DESC;
+SELECT o.last_updated_dttm, o.* FROM orders o ORDER BY o.last_updated_dttm DESC;
 
 
--- Find the company name for a certain LPN
+-- Find the company name for a certain LPN, amd place it in the "Contact" input box
 SELECT l.tc_lpn_id, o.bill_to_name
 FROM orders o, lpn l
 WHERE o.tc_order_id = l.tc_order_id
-AND tc_lpn_id = '00000197180514419507';
+AND tc_lpn_id = '00000197180524279429';
 
 
 -- Retrieve the orders
@@ -714,20 +826,20 @@ SELECT unique o.tc_order_id, o.ext_purchASe_order, l.tc_lpn_id, l.lpn_status, lf
 FROM orders o, lpn l, lpn_facility_status lfs
 WHERE o.order_id = l.order_id
 AND l.lpn_status = lfs.lpn_facility_status
-AND o.ext_purchASe_order in ('JCAR91997307');
+AND o.ext_purchase_order in ('JCAR91997307');
 
 
--- Find order WITH lpn
+-- Find order with lpn
 SELECT o.order_id, o.tc_order_id, l.tc_lpn_id, l.lpn_facility_status
 FROM lpn l, orders o
 WHERE l.tc_order_id = o.tc_order_id
 AND l.tc_lpn_id = '00000197180484378019';
 
 
--- Check if the order came through WITH any errors or not.
+-- Check if the order came through with any errors or not.
 SELECT * FROM tran_log tl, tran_log_message tlm
 WHERE tlm.tran_log_id = tl.tran_log_id
-AND msg_type = 'DistributiONOrder'
+AND msg_type = 'DistributionOrder'
 AND TL.CREATED_DTTM between '11-JUN-23' AND '18-JUN-23'
 AND msg_line_text like '%1216262316%';
     
@@ -746,15 +858,15 @@ AND o_phONe_number = 'B';
 --AND l.inbound_outbound_indicator = 'O';
 
 
----(STS)-Ship to Store
----This SQL Checks to see if STS is ON for all stores
+-- (STS)-Ship to Store
+-- Checks to see if STS is ON for all stores
 SELECT * FROM facility f, facility_aliAS fa
 WHERE f.facility_id = fa.facility_id
 AND SUBSTR(fa.facility_aliAS_id,1,6) = '249380'
 AND f.ship_to_store = 0;
 
 
----This SQL Checks to see if STS is OFF for all stores
+-- Checks to see if STS is OFF for all stores
 SELECT * FROM facility f, facility_aliAS fa
 WHERE f.facility_id = fa.facility_id
 AND SUBSTR(fa.facility_aliAS_id,1,6) = '249380'
@@ -806,6 +918,24 @@ AND o.tc_order_id in ('CAR103459782_2')
 -- AND l.lpn_facility_status < 90
 AND o.ref_field_3 = 'EC';
 
+
+-- 
+select order_id, note_seq, note_type, note, line_item_id, note_code from order_note
+where order_id||'-'||line_item_id||'-'||note_seq in
+(select order_id||'-'||line_item_id||'-'||note_seq from (
+select ORDER_ID, LINE_ITEM_ID, NOTE_TYPE, note_code, max(note_seq) note_seq, COUNT(*)  from order_note
+where order_ID IN
+(select order_id from orders where do_status <= 130)
+AND LINE_ITEM_ID <> 0
+and note_type = 'VS'
+GROUP BY ORDER_ID, LINE_ITEM_ID, NOTE_TYPE, note_code
+HAVING COUNT(*) > 1));
+
+
+-- 
+SELECT tc_order_id FROM orders 
+WHERE order_id IN ('182412216','182417140','182417141','182412215','182417141','182417141','182412216','182412216','182417140','182412215','182412216','182417140','182412216','182417141','182412215','182412215','182412216','182417141','182417140','182412215','182412216','182412215','182412215','182412215','182412215','182412216','182412216','182417140','182412215','182412216','182412215','182412215','182412215','182412216','182417140','182412216','182412215','182417140','182417141','182412215','182412215','182412215','182412215','182412215','182412216','182412216','182417140','182412215','182412216');
+
 -------------------------------------------------------------------------------------------------------------------------------- Shipments ----------------------------------------------------------------------------------------------------------------------------------------
 
 ALTER SESSION SET current_schema = DM;
@@ -822,7 +952,7 @@ AND lp.lpn_facility_status = '40';
     
     
 -- Check the weight of the boxes 
--- '******' means invalid weight meaning that the box will not recieve a destinatiON
+-- '******' means invalid weight meaning that the box will not recieve a destination
 SELECT * FROM twcc_mhe_message 
 WHERE divert = 'SCNSHIP'
 ORDER BY mod_date_time DESC;
@@ -864,7 +994,7 @@ AND lpn_facility_status <> 90;
 
 
 -- STS - Ship to Store
--- Checks to see if STS is ON for all stores
+-- Checks to see if STS is on for all stores
 SELECT * FROM facility f, facility_aliAS fa
 WHERE f.facility_id = fa.facility_id
 AND SUBSTR(fa.facility_aliAS_id, 1, 6) = '249380'
@@ -911,7 +1041,7 @@ ORDER BY s.delivery_END_dttm DESC;
 SELECT l.tc_lpn_id, l.tc_parent_lpn_id, o.assigned_static_route_id, o.dsg_static_route_id, l.static_route_id, l.route_rule_id, l.shipment_id, l.tc_shipment_id, l.tracking_nbr, o.d_facility_aliAS_id, l.wave_nbr
 FROM orders o, lpn l
 WHERE o.tc_order_id = l.tc_order_id
-AND tc_lpn_id in ('00000197181311708955' )
+AND tc_lpn_id in ('00000197181312762529' )
 ORDER BY o.ASsigned_static_route_id;
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME = 'LPN' AND COLUMN_NAME LIKE '%ROUTE%' AND OWNER = 'DM';
@@ -930,9 +1060,29 @@ ALTER SESSION SET current_schema = DM;
 SELECT * FROM cl_message;
 SELECT * FROM msg_log;
 SELECT * FROM event_message;
-SELECT DISTINCT status FROM cl_endpoint_queue;
+SELECT * FROM cl_endpoint_queue;
 SELECT * FROM twcc_mhe_message;
 SELECT * FROM twcc_tote_audit;
+
+
+-- Check DF Transactions
+SELECT * FROM prod_trkg_tran ptt, locn_hdr lh
+WHERE ptt.from_locn = lh.locn_id
+AND dsp_locn LIKE '%PDF02%%'
+AND ptt.mod_date_time > sysdate - 3/24;
+
+
+-- Check DF picking by floor
+SELECT ptt.wave_nbr,
+       ptt.create_date_time,
+       ptt.module_name,
+       ptt.mod_date_time,
+       ptt.user_id
+FROM prod_trkg_tran ptt, locn_hdr lh
+WHERE ptt.from_locn = lh.locn_id
+AND lh.dsp_locn LIKE '%PDF03%%'
+AND ptt.mod_date_time > sysdate - 3/24
+ORDER BY mod_date_time DESC;
 
 
 SELECT REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 4) AS oLPN,
@@ -1042,7 +1192,7 @@ INNER JOIN cl_ENDpoint_queue clq ON ce.ENDpoint_id = clq.ENDpoint_id
 INNER JOIN cl_message cm         ON clq.msg_id = cm.msg_id
 --WHERE WHEN_queued between '13-JAN-24 06.30.00.000000000 PM' AND '15-JAN-24 04.30.00.000000000 AM'
 WHERE WHEN_queued >= sysdate - 2
---AND REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 7) = '970902509916'
+AND REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 7) = '970902500336'
 AND cm.source_id = 'WCS_USS_PS_DIVERTED'
 ORDER BY WHEN_queued DESC;
 
@@ -1065,7 +1215,7 @@ INNER JOIN cl_ENDpoint_queue clq ON ce.ENDpoint_id = clq.ENDpoint_id
 INNER JOIN cl_message cm         ON clq.msg_id = cm.msg_id
 --WHERE WHEN_queued between '13-JAN-24 06.30.00.000000000 PM' AND '15-JAN-24 04.30.00.000000000 AM'
 WHERE WHEN_queued >= sysdate - 1/24
---AND REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 7) = '970902508781'
+AND REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 7) = '970902500336'
 AND cm.source_id = 'WCS_SCANNERS'
 ORDER BY WHEN_queued DESC;
 
@@ -1187,7 +1337,7 @@ INNER JOIN cl_ENDpoint_queue clq ON ce.ENDpoint_id = clq.ENDpoint_id
 INNER JOIN cl_message cm         ON clq.msg_id = cm.msg_id
 --WHERE WHEN_queued between '13-JAN-24 06.30.00.000000000 PM' AND '15-JAN-24 04.30.00.000000000 AM'
 WHERE WHEN_queued >= sysdate - 1
-AND REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 10) = '970907120041'
+AND REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 10) = '970902500336'
 AND cm.source_id = 'WCS_USorter_ToteChute'
 ORDER BY WHEN_queued DESC;
 
@@ -1212,16 +1362,16 @@ AND tmm.create_date_time > '17-FEB-24 06.30.00.000000000 PM'
 ORDER BY create_date_time DESC;
 
 
--- Tote Failed To Enter OSR AND Not CONSUMed ... New & Improved??--
-SELECT to_SUBSTR(data,49,8)) AS TOTE, source_id, WHEN_created, cl.msg_id
-FROM cl_message cl, cl_ENDpoint_queue cq
-WHERE cl.msg_id = cq.msg_id
-AND cl.WHEN_created > sysdate - 1/24
-AND source_id = 'OSR_CONTAINERSTATUSGTPCONSUMED'
-AND status = '6'
-AND TO_CHAR(SUBSTR(data,49,8)) in (SELECT tc_lpn_id FROM lpn WHERE lpn_facility_status < '90')
-AND WHEN_created > (SELECT max(create_date_time) FROM alloc_invn_dtl WHERE cntr_nbr = TO_CHAR(SUBSTR(data,49,8)))
-ORDER BY WHEN_created DESC;
+-- Totes That Failed To Enter OSR And Not Consumed
+SELECT to_char(SUBSTR(data,49,8)) AS totes, cl.msg_id, source_id, when_created
+FROM cl_message cl, cl_endpoint_queue cq 
+WHERE cl.msg_id = cq.msg_id 
+AND cl.when_created > sysdate - 7 
+AND source_id = 'OSR_CONTAINERSTATUSGTPCONSUMED' 
+AND status = '6' 
+AND to_char(SUBSTR(data,49,8)) in (SELECT tc_lpn_Id FROM lpn WHERE lpn_facility_status < '90') 
+AND when_created > (SELECT MAX(create_date_time) FROM alloc_invn_dtl WHERE cntr_nbr = TO_CHAR(SUBSTR(data,49,8))) 
+ORDER BY when_created DESC;
 
 
 -- Check the status of the wave, if status is 5 then the event message for SDI wAS sent out successfully, if not then there is a cONnectiON issue.
@@ -1271,15 +1421,14 @@ SELECT msg_id,
        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 16) AS VOLUME,
        WHEN_created
 FROM cl_message
-WHERE REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 12) in ('99047571')
+WHERE REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 12) in ('99034559')
 AND WHEN_created > sysdate - 5
 AND event_id = '6692';
 
 
 --CHUTE
 ---Finding failing messages
-SELECT cle.name,
-       TO_CHAR(cleq.msg_id) msg_id,
+SELECT TO_CHAR(cleq.msg_id) msg_id,
        WHEN_queued,
        DECODE(cleq.status, '5', 'Succeed', '6', 'Failed','10', 'Busy', '2', 'Ready') AS status,cleq.status,
        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 4) "WAVE",
@@ -1290,8 +1439,7 @@ SELECT cle.name,
 --       REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 11) ,
 --       REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 12),
        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 14) "User",
-       cm.source_id,
-       data
+       cm.source_id
 FROM cl_ENDpoint cle,
      cl_ENDpoint_queue cleq,
      cl_message cm
@@ -1308,6 +1456,42 @@ AND cm.WHEN_created > SYSDATE -  1/24 -------change time interval
 --AND l.lpn_facility_status = '50'
 --AND cm.source_id = '9001_9002_User_Interface' 
 ORDER BY WHEN_queued DESC;
+
+
+-- MHE messages for OSR/461
+-- Search for transport orders
+select eq.msg_id,
+       regexp_substr(to_char(m.data), '[^/^]+', 1, 8) as item
+from cl_endpoint_queue eq, cl_message m
+where m.msg_id = eq.msg_id
+and eq.when_queued > sysdate - 4
+and eq.endpoint_id = '461'
+and eq.status = '5'
+-- and regexp_substr(to_char(m.data), '[^/^]+', 1, 6) like '%990432%'
+and m.data like '%99006691%'
+-- and source_id = '6692_CC_INT9'
+order by eq.when_status_changed desc;
+
+
+-- EXC Totes
+select *
+from lpn l, 
+     lpn_detail ld, 
+     item_cbo ic, 
+     locn_hdr lh,
+     wm_inventory wi,
+     lpn_facility_status lfs
+where l.lpn_id = ld.lpn_id
+and ic.item_id = ld.item_id
+and ld.item_id = wi.item_id
+and wi.location_id = lh.locn_id
+and ld.batch_nbr = wi.batch_nbr
+and l.lpn_facility_status = lfs.lpn_facility_status
+-- and l.tc_lpn_id = aid.cntr_nbr
+-- and aid.alloc_invn_dtl_id = td.alloc_invn_dtl_id
+and l.lpn_facility_status in ('48', '50', '64')
+and lfs.inbound_outbound_indicator = 'I';
+
 
 
 -- 
@@ -1340,6 +1524,24 @@ FROM ASNDBA.ASn_intransit_lpn@wms12_to_omnia
 WHERE ASn_number ='221583652' 
 GROUP BY lpn
 HAVING COUNT(lpn) > 1;
+
+
+-- DC12 - SEV 1 >> > Duplicate Order Notes
+-- This will cause "WAVE ABORTS".  Please investigate and process the duplicate order notes CCF to remove the duplicates
+select order_id, note_seq, note_type, note, line_item_id, note_code from order_note
+where order_id||'-'||line_item_id||'-'||note_seq in
+(select order_id||'-'||line_item_id||'-'||note_seq from (
+select ORDER_ID, LINE_ITEM_ID, NOTE_TYPE, note_code, max(note_seq) note_seq, COUNT(*)  from order_note
+where order_ID IN
+(select order_id from orders where do_status <= 130)
+AND LINE_ITEM_ID <> 0
+and note_type = 'VS'
+GROUP BY ORDER_ID, LINE_ITEM_ID, NOTE_TYPE, note_code
+HAVING COUNT(*) > 1));
+
+-- Get the Distributed Order ID
+SELECT DISTINCT tc_order_id FROM orders WHERE order_id IN ('180937676','180937677','180937677','180937677','180937677','180937677','180937676','180937677','180937677','180937677','180937677','180937677','180937677','180937676','180937677','180937676'
+);
 
 
 /* DC12 gets foreign trailers now, we need to make sure that the ASn we fix are dONe correctly the first time around. 
