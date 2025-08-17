@@ -1,7 +1,7 @@
 ALTER SESSION SET current_schema = DM;
 
 
--- Find certain columns
+-- Find certain columns with the owner as DM
 SELECT * FROM All_TAB_COLS WHERE COLUMN_NAME = 'CNTR_NBR' AND OWNER = 'DM';
 
 SELECT * FROM All_TAB_COLS WHERE COLUMN_NAME LIKE '%SHIP%' AND OWNER = 'DM';
@@ -19,7 +19,7 @@ SELECT * FROM ALL_TAB_COLS WHERE COLUMN_NAME LIKE '%QTY%' AND OWNER = 'DM';
 SELECT * FROM ALL_TAB_COLS WHERE COLUMN_NAME LIKE '%XML%' AND OWNER = 'DM';
 
 
--- Find certain tables
+-- Find certain tables with the owner as DM
 SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'LPN' AND OWNER = 'DM';
 
 SELECT * FROM All_TAB_COLS WHERE TABLE_NAME = 'ALLOC_INVN_DTL' AND OWNER = 'DM';
@@ -58,11 +58,8 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%USER%' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%CLIENT%';
 
-SELECT * FROM VOCOLLECT_USER_LOGIN;
 
-SELECT * FROM SYS.DBA_HIST_IC_DEVICE_STATS;
-
--- Find certain tables AND columns
+-- Find certain tables AND columns with the owner as DM
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME = 'SHIPMENT' AND COLUMN_NAME LIKE '%GROUP%' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME = 'SHIPMENT' AND COLUMN_NAME LIKE '%SHIP%' AND OWNER = 'DM';
@@ -78,6 +75,10 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LPN%' AND COLUMN_NAME LIKE '%
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%ORDERS%' AND COLUMN_NAME LIKE '%PO%' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LPN%' AND COLUMN_NAME LIKE '%PALLET%' AND OWNER = 'DM';
+
+
+-- Find certain tables
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%SYS%';
 
 -------------------------------------------------------------------------------------------------------------------------------- Users ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -98,9 +99,9 @@ AND user_last_name like '%Gutierrez Carbajal%';
 
 
 -- Find the user WITH user name
-SELECT user_name, user_first_name, user_lASt_name, is_active
+SELECT user_name, user_first_name, user_last_name, is_active
 FROM ucl_user
-WHERE user_name in ('360674');
+WHERE user_name in ('361774', '361688');
 
 
 -- 
@@ -179,7 +180,7 @@ JOIN locn_hdr lh
 ON td.pull_locn_id = lh.locn_id
 JOIN locn_hdr lh2
 ON td.dest_locn_id = lh2.locn_id
-AND cntr_nbr in ( '00006644542076408156','00006644542076408200','00007160417358256636','00007160417358256506','00006644542076408279','00006644542076408323','00006644542076406688','00006644542114478523','00007160417358256568','00007160417358256513','00007160417358245173','00006644542076408118' ) 
+AND cntr_nbr in ( '99001989' ) 
 AND stat_code < 90
 ORDER BY task_seq_nbr ASC;
 
@@ -918,24 +919,6 @@ AND o.tc_order_id in ('CAR103459782_2')
 -- AND l.lpn_facility_status < 90
 AND o.ref_field_3 = 'EC';
 
-
--- 
-select order_id, note_seq, note_type, note, line_item_id, note_code from order_note
-where order_id||'-'||line_item_id||'-'||note_seq in
-(select order_id||'-'||line_item_id||'-'||note_seq from (
-select ORDER_ID, LINE_ITEM_ID, NOTE_TYPE, note_code, max(note_seq) note_seq, COUNT(*)  from order_note
-where order_ID IN
-(select order_id from orders where do_status <= 130)
-AND LINE_ITEM_ID <> 0
-and note_type = 'VS'
-GROUP BY ORDER_ID, LINE_ITEM_ID, NOTE_TYPE, note_code
-HAVING COUNT(*) > 1));
-
-
--- 
-SELECT tc_order_id FROM orders 
-WHERE order_id IN ('182412216','182417140','182417141','182412215','182417141','182417141','182412216','182412216','182417140','182412215','182412216','182417140','182412216','182417141','182412215','182412215','182412216','182417141','182417140','182412215','182412216','182412215','182412215','182412215','182412215','182412216','182412216','182417140','182412215','182412216','182412215','182412215','182412215','182412216','182417140','182412216','182412215','182417140','182417141','182412215','182412215','182412215','182412215','182412215','182412216','182412216','182417140','182412215','182412216');
-
 -------------------------------------------------------------------------------------------------------------------------------- Shipments ----------------------------------------------------------------------------------------------------------------------------------------
 
 ALTER SESSION SET current_schema = DM;
@@ -1063,6 +1046,13 @@ SELECT * FROM event_message;
 SELECT * FROM cl_endpoint_queue;
 SELECT * FROM twcc_mhe_message;
 SELECT * FROM twcc_tote_audit;
+SELECT * FROM dmmsf.sys_code;
+
+
+SELECT * 
+FROM dmmsf.sys_code
+WHERE code_type = 'PLN'
+AND to_char(substr(code_id, 1, 4)) = '2025';
 
 
 -- Check DF Transactions
@@ -1507,6 +1497,10 @@ ORDER BY task_id DESC ;
 -------------------------------------------------------------------------------------------------------------------------------- CCFs, DB Locks & sessions ----------------------------------------------------------------------------------------------------------------------------------------
 
 ALTER SESSION SET current_schema = DM;
+
+-- Check database history
+SELECT * FROM SYS.DBA_HIST_IC_DEVICE_STATS;
+
 
 -- Ecom Backlot
 WITH 
