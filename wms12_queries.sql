@@ -56,7 +56,9 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE 'PICKING%' AND OWNER = 'DM';
 
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%USER%' AND OWNER = 'DM';
 
-SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%CLIENT%';
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%WAVE%' AND OWNER = 'DM';
+
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%SYS%' AND OWNER = 'SYS';
 
 
 -- Find certain tables AND columns with the owner as DM
@@ -79,6 +81,8 @@ SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%LPN%' AND COLUMN_NAME LIKE '%
 
 -- Find certain tables
 SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%SYS%';
+
+SELECT * FROM ALL_TAB_COLS WHERE TABLE_NAME LIKE '%CLIENT%';
 
 -------------------------------------------------------------------------------------------------------------------------------- Users ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1047,6 +1051,7 @@ SELECT * FROM cl_endpoint_queue;
 SELECT * FROM twcc_mhe_message;
 SELECT * FROM twcc_tote_audit;
 SELECT * FROM dmmsf.sys_code;
+SELECT * FROM twcc_uss_wave_download;
 
 
 SELECT * 
@@ -1512,7 +1517,7 @@ e AS(SELECT TRIM(TO_CHAR(SUM(order_qty), '999,999,999')) AS Total FROM orders o,
 SELECT prereleASed,releASed,allocated,inpacking "IN PACKING",Total FROM a,b,c,d,e;
 
 
--- Find all the multisku iLPN ON the ASn AND valdiate the LPN ON the correct xml.
+-- Find all the multisku iLPN ON the ASN and valdiate the LPN ON the correct xml.
 SELECT lpn, COUNT(lpn) AS number_of_lpns
 FROM ASNDBA.ASn_intransit_lpn@wms12_to_omnia 
 WHERE ASn_number ='221583652' 
