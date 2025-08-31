@@ -96,7 +96,7 @@ SELECT * FROM user_default;
 
 
 -- Find user with their first and last name
-SELECT user_name, user_first_name, user_lASt_name, is_active
+SELECT user_name, user_first_name, user_last_name, is_active
 FROM ucl_user
 WHERE user_first_name like '%Claudia%'
 AND user_last_name like '%Gutierrez Carbajal%';
@@ -105,25 +105,27 @@ AND user_last_name like '%Gutierrez Carbajal%';
 -- Find the user WITH user name
 SELECT user_name, user_first_name, user_last_name, is_active
 FROM ucl_user
-WHERE user_name in ('361774', '361688');
+WHERE user_name in ('337823');
 
 
 -- 
-SELECT distinct(uu.user_name)"USER_ID", cONcat(cONcat(cONcat(uu.USER_FIRST_NAME,' '),uu.USER_MIDDLE_NAME),uu.USER_LAST_NAME)"USER_FULL_NAME", uu.created_source "USER_CREATED_BY", TO_CHAR(uu.created_dttm, 'MON-DD-YYYY') "USER_PROFILE_CREATED_DATE",
-CASE WHEN r.role_name IS NULL THEN 'NO ROLES ASSIGNED' 
-     WHEN ud.parameter_value = '-1' THEN 'CHECK USER DEFAULTS'
-END AS USER_PROFILE_ISSUE
-FROM ucl_user uu
-full outer JOIN access_cONtrol ac ON uu.ucl_user_id = ac.ucl_user_id
-full outer JOIN role r ON ac.role_id = r.role_id
-full outer JOIN user_default ud ON uu.ucl_user_id = ud.ucl_user_id
-WHERE uu.is_active = '1'
-AND (uu.user_name not in ('2_DC SYSTEMS','2_DF','2_ECOM PICK','2_ENGINEERING','2_VAS','3_REPLEN','1_FLEX','4_PTS','4_OSR','4_DF','1_REPLEN','3_OUTBOUND','2_IC','1_WAVING','3_COMPLIANCE','3_DF','1_PULL','2_ROUTING','3_ECOM PICK','1_ECOM PICK','4_WAVING','4_ROUTING','4_PULL','4_INBOUND','4_IC','5_ENGINEERING','2_ECOM PACK','2_FLEX','2_HR','3_OSR','2_PULL','3_PULL','1_ECOM PACK','1_IC','3_DC SYSTEMS','1_OUTBOUND','2_PTS','3_WAVING','4_ECOM PACK','1_VAS','3_HR','2_OUTBOUND','1_OSR','2_WAVING','4_VAS','4_REPLEN','5_FINANCE','slotfinal','2_OSR','1_PTS','2_REPLEN','3_ENGINEERING','3_VAS','1_ENGINEERING','3_ROUTING','4_HR','slotprep','1_ROUTING','3_IC','3_PTS','2_INBOUND','2_COMPLIANCE','1_HR','3_ECOM PACK','3_FLEX','4_OUTBOUND','4_COMPLIANCE','4_FLEX PLT','4_SORTRAK','4_DC SYSTEMS','system','slotslot','5_HR','4_ENGINEERING','1_INBOUND','5_ROUTING','4_ECOM PICK','slotrank','OSR')
-AND r.role_name is null
-or ud.parameter_value = '-1')
-AND uu.created_dttm >= sysdate - 9999
-AND uu.user_first_name not like 'TERM%'
-ORDER BY USER_ID;
+WITH user_cte AS (
+    SELECT distinct(uu.user_name)"USER_ID", cONcat(cONcat(cONcat(uu.USER_FIRST_NAME,' '),uu.USER_MIDDLE_NAME),uu.USER_LAST_NAME)"USER_FULL_NAME", uu.created_source "USER_CREATED_BY", TO_CHAR(uu.created_dttm, 'MON-DD-YYYY') "USER_PROFILE_CREATED_DATE",
+    CASE WHEN r.role_name IS NULL THEN 'NO ROLES ASSIGNED' 
+         WHEN ud.parameter_value = '-1' THEN 'CHECK USER DEFAULTS'
+    END AS USER_PROFILE_ISSUE
+    FROM ucl_user uu
+    full outer JOIN access_control ac ON uu.ucl_user_id = ac.ucl_user_id
+    full outer JOIN role r ON ac.role_id = r.role_id
+    full outer JOIN user_default ud ON uu.ucl_user_id = ud.ucl_user_id
+    WHERE uu.is_active = '1'
+    AND (uu.user_name not in ('2_DC SYSTEMS','2_DF','2_ECOM PICK','2_ENGINEERING','2_VAS','3_REPLEN','1_FLEX','4_PTS','4_OSR','4_DF','1_REPLEN','3_OUTBOUND','2_IC','1_WAVING','3_COMPLIANCE','3_DF','1_PULL','2_ROUTING','3_ECOM PICK','1_ECOM PICK','4_WAVING','4_ROUTING','4_PULL','4_INBOUND','4_IC','5_ENGINEERING','2_ECOM PACK','2_FLEX','2_HR','3_OSR','2_PULL','3_PULL','1_ECOM PACK','1_IC','3_DC SYSTEMS','1_OUTBOUND','2_PTS','3_WAVING','4_ECOM PACK','1_VAS','3_HR','2_OUTBOUND','1_OSR','2_WAVING','4_VAS','4_REPLEN','5_FINANCE','slotfinal','2_OSR','1_PTS','2_REPLEN','3_ENGINEERING','3_VAS','1_ENGINEERING','3_ROUTING','4_HR','slotprep','1_ROUTING','3_IC','3_PTS','2_INBOUND','2_COMPLIANCE','1_HR','3_ECOM PACK','3_FLEX','4_OUTBOUND','4_COMPLIANCE','4_FLEX PLT','4_SORTRAK','4_DC SYSTEMS','system','slotslot','5_HR','4_ENGINEERING','1_INBOUND','5_ROUTING','4_ECOM PICK','slotrank','OSR')
+    AND r.role_name is null
+    or ud.parameter_value = '-1')
+    AND uu.created_dttm >= sysdate - 9999
+    AND uu.user_first_name not like 'TERM%'
+)
+SELECT * FROM user_cte WHERE user_id LIKE '______' ORDER BY USER_ID;
 
 -------------------------------------------------------------------------------------------------------------------------------- Allocations & tasks ----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -143,17 +145,17 @@ SELECT * FROM prod_trkg_tran;
 -- Find allocatiONs WITH tote number        
 SELECT unique cntr_nbr, invn_need_type, cartON_nbr, stat_code
 FROM alloc_invn_dtl
-WHERE cntr_nbr in ( '99001794' )
+WHERE cntr_nbr in ( '99031271' )
 AND stat_code < 90
 AND invn_need_type = '60';
 
 
--- FInd all INT 52s AND sEND the oLPNs that are tied to the EXC totes to operatiONs
--- They will then have to sEND the list to Problem Res
--- Problem Res will then submit chASe allocatiONs 
+-- Find all INT 52s and send the oLPNs that are tied to the EXC totes to operations
+-- They will then have to send the list to Problem Res
+-- Problem Res will then submit chase allocations 
 SELECT unique cntr_nbr, carton_nbr, invn_need_type, stat_code
 FROM alloc_invn_dtl
-WHERE cntr_nbr in ( '99001794' )
+WHERE cntr_nbr in ( '99031271' )
 AND stat_code < 90
 AND invn_need_type = '52';
 
@@ -184,9 +186,11 @@ JOIN locn_hdr lh
 ON td.pull_locn_id = lh.locn_id
 JOIN locn_hdr lh2
 ON td.dest_locn_id = lh2.locn_id
-AND cntr_nbr in ( '99001989' ) 
+AND cntr_nbr in ( '99031271' ) 
 AND stat_code < 90
 ORDER BY task_seq_nbr ASC;
+
+SELECT * FROM task_dtl WHERE task_id = '99824601' AND stat_code < 90;
 
 
 -- Find item that is not assigned to a tote for task
@@ -266,17 +270,17 @@ AND stat_code < 90;
 -- Find allocations with oLPNs
 SELECT unique cntr_nbr, invn_need_type, carton_nbr, stat_code
 FROM alloc_invn_dtl
-WHERE carton_nbr in ('00000197180545124944')
+WHERE carton_nbr in ('00001973475001425369')
 AND stat_code < 90;
 
     
 -- Find tasks with oLPN
 SELECT unique cntr_nbr, task_cmpl_ref_nbr, task_id, invn_need_type, stat_code
 FROM task_dtl
-WHERE cartON_nbr in ('00000197180545124944'  )
+WHERE cartON_nbr in ('00001973475001425369'  )
 AND stat_code < 90;
 
-SELECT tc_lpn_id, ship_wave_nbr, chase_wave_nbr FROM picking_short_item WHERE tc_lpn_id IN ('00000197180545124944');
+SELECT tc_lpn_id, ship_wave_nbr, chase_wave_nbr FROM picking_short_item WHERE tc_lpn_id IN ('00001973475001425369');
 
 
 -- Find the INTs for the oLPN
@@ -347,7 +351,7 @@ WHERE
             tmm.cartON_nbr = e.ek_ilpn_nbr
             AND e.event_id = '6691'
     );
-
+    
 
 -- New stuff that will jackpot if it has this issue, try to catch it before it jackpots Put to store RF to allocate then 6691 to give destinations
 SELECT td.task_id,
@@ -487,12 +491,12 @@ ON aid.alloc_invn_dtl_id = td.alloc_invn_dtl_id
 WHERE task_id = '';
 
 
--- Find task from item and locatiON
+-- Find task from item and location
 SELECT t.task_id, t.cntr_nbr, t.batch_nbr, t.invn_need_type, t.task_genrtn_ref_nbr, t.task_cmpl_ref_nbr, t.stat_code, l.locn_brcd, i.item_name, i.DESCriptiON
 FROM task_dtl t, locn_hdr l, item_cbo i
 WHERE t.dest_locn_id = l.locn_id
 AND t.item_id = i.item_id
-AND l.dsp_locn = 'PDF0214D05'
+AND l.dsp_locn = 'PDF0112B04'
 -- AND i.item_name = '2O934710 IVY 2T'
 AND  stat_code < 90;
 
@@ -1051,32 +1055,27 @@ SELECT * FROM cl_endpoint_queue;
 SELECT * FROM twcc_mhe_message;
 SELECT * FROM twcc_tote_audit;
 SELECT * FROM dmmsf.sys_code;
-SELECT * FROM twcc_uss_wave_download;
-
-
-SELECT * 
-FROM dmmsf.sys_code
-WHERE code_type = 'PLN'
-AND to_char(substr(code_id, 1, 4)) = '2025';
-
-
--- Check DF Transactions
-SELECT * FROM prod_trkg_tran ptt, locn_hdr lh
-WHERE ptt.from_locn = lh.locn_id
-AND dsp_locn LIKE '%PDF02%%'
-AND ptt.mod_date_time > sysdate - 3/24;
 
 
 -- Check DF picking by floor
 SELECT ptt.wave_nbr,
-       ptt.create_date_time,
+       lh.dsp_locn,
+       ptt.user_id,
        ptt.module_name,
-       ptt.mod_date_time,
-       ptt.user_id
-FROM prod_trkg_tran ptt, locn_hdr lh
-WHERE ptt.from_locn = lh.locn_id
-AND lh.dsp_locn LIKE '%PDF03%%'
-AND ptt.mod_date_time > sysdate - 3/24
+       wi.on_hand_qty,
+       wi.to_be_filled_qty,
+       wi.wm_allocated_qty,
+       wi.sub_pack_qty,
+       wi.pack_qty,
+       ptt.create_date_time,
+       ptt.mod_date_time
+FROM prod_trkg_tran ptt 
+JOIN locn_hdr lh
+ON ptt.from_locn = lh.locn_id
+JOIN wm_inventory wi
+ON lh.locn_id = wi.location_id
+WHERE lh.dsp_locn LIKE '%PDF02%%'
+AND ptt.mod_date_time BETWEEN '17-AUG-25 06.30.00.000000000 PM' AND '18-AUG-25 04.30.00.000000000 AM'
 ORDER BY mod_date_time DESC;
 
 
@@ -1263,52 +1262,88 @@ ORDER BY WHEN_queued DESC;
 
 
 -- Check the status for all iLPNs located in PTS
-SELECT TO_CHAR(clq.msg_id) AS msg_id,
-       ce.name,
-       clq.status AS status_number,
-       CASE WHEN clq.status = '5' then 'Succeed'
-            WHEN clq.status = '6' then 'Failed'
-            WHEN clq.status = '2' then 'Ready'
-            WHEN clq.status = '10' then 'Busy'
-            ELSE 'Other'
-        END AS status,
-        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 9) AS iLPN,
-        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 10) AS oLPN,
-        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 4) AS wave,
-        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 8) AS locatiON,
-        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 11) AS puts,
-        WHEN_queued
-FROM cl_ENDpoint ce
-INNER JOIN cl_ENDpoint_queue clq ON ce.ENDpoint_id = clq.ENDpoint_id
-INNER JOIN cl_message cm         ON clq.msg_id = cm.msg_id
---WHERE WHEN_queued between '13-JAN-24 06.30.00.000000000 PM' AND '15-JAN-24 04.30.00.000000000 AM'
-WHERE WHEN_queued >= sysdate - 1
-AND REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 10) = '00000197181307664111'
-AND cm.source_id = 'WCS_PTS_PickCONfirm'
-ORDER BY when_queued DESC;
+WITH pts_cte AS (
+   SELECT TO_CHAR(clq.msg_id) AS msg_id,
+           ce.name,
+           clq.status AS status_number,
+           CASE WHEN clq.status = '5' then 'Succeed'
+                WHEN clq.status = '6' then 'Failed'
+                WHEN clq.status = '2' then 'Ready'
+                WHEN clq.status = '10' then 'Busy'
+                ELSE 'Other'
+            END AS status,
+            REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 9) AS iLPN,
+            REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 10) AS oLPN,
+            REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 4) AS wave,
+            REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 8) AS location,
+            REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 11) AS puts,
+            WHEN_queued
+    FROM cl_ENDpoint ce
+    INNER JOIN cl_ENDpoint_queue clq 
+    ON ce.ENDpoint_id = clq.ENDpoint_id
+    INNER JOIN cl_message cm         
+    ON clq.msg_id = cm.msg_id
+    WHERE WHEN_queued between '30-AUG-25 06.30.00.000000000 PM' AND '31-AUG-25 04.30.00.000000000 AM'
+    --WHERE WHEN_queued >= sysdate - 1
+    AND cm.source_id = 'WCS_PTS_Pickconfirm'
+)
+SELECT * FROM pts_cte;
 
 
--- 
-SELECT REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 4) AS oLPN,
-       REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 5) AS carton_status,
-       REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 9) AS wave,
-       REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 10) AS qty,
-       REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 11) AS location,
-       CASE WHEN ceq.status = 2 THEN 'Ready'
-            WHEN ceq.status = 5 THEN 'Success'
-            WHEN ceq.status = 6 THEN 'Fail'
-            ELSE 'Busy'
-       END AS status_description,
-       ceq.status,
-       ceq.when_queued
-FROM cl_endpoint_queue ceq
-JOIN cl_endpoint ce
-ON ceq.endpoint_id = ce.endpoint_id
-JOIN cl_message cm
-ON ceq.msg_id = cm.msg_id
-WHERE cm.source_id = 'WCS_PTS_CartonClose'
-AND ceq.when_queued > sysdate - 7/24
-ORDER BY when_queued DESC;
+-- Check for closed cartons in PTS, this indicates that the oLPN is in Packed status
+WITH pts_carton_close_cte AS (
+    SELECT TO_CHAR(clq.msg_id) AS msg_id,
+           ce.name,
+           clq.status AS status_number,
+           CASE WHEN clq.status = '5' then 'Succeed'
+                WHEN clq.status = '6' then 'Failed'
+                WHEN clq.status = '2' then 'Ready'
+                WHEN clq.status = '10' then 'Busy'
+                ELSE 'Other'
+           END AS status,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 4) AS olpn,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 5) AS carton_status,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 9) AS wave,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 10) AS units,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 11) AS location,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 8) AS "USER",
+           when_queued
+    FROM cl_ENDpoint ce
+    INNER JOIN cl_endpoint_queue clq 
+    ON ce.ENDpoint_id = clq.ENDpoint_id
+    INNER JOIN cl_message cm         
+    ON clq.msg_id = cm.msg_id
+    WHERE WHEN_queued between '30-AUG-25 06.30.00.000000000 PM' AND '31-AUG-25 04.30.00.000000000 AM'
+    --WHERE WHEN_queued >= sysdate - 1
+    AND cm.source_id = 'WCS_PTS_CartonClose'
+)
+SELECT * FROM pts_carton_close_cte WHERE olpn = '00000197181318588017';
+
+
+-- PTS Messages
+WITH pts_cte AS (
+    SELECT REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 4) AS olpn,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 5) AS carton_status,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 9) AS wave,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 10) AS qty,
+           REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 11) AS location,
+           CASE WHEN ceq.status = 2 THEN 'Ready'
+                WHEN ceq.status = 5 THEN 'Success'
+                WHEN ceq.status = 6 THEN 'Fail'
+                ELSE 'Busy'
+           END AS status_description,
+           ceq.status,
+           ceq.when_queued
+    FROM cl_endpoint_queue ceq
+    JOIN cl_endpoint ce
+    ON ceq.endpoint_id = ce.endpoint_id
+    JOIN cl_message cm
+    ON ceq.msg_id = cm.msg_id
+    WHERE cm.source_id = 'WCS_PTS_CartonClose'
+    AND ceq.when_queued > sysdate - 10/24
+    ORDER BY when_queued DESC
+)
+SELECT * FROM pts_cte WHERE olpn = '00000197181318036099';
 
 
 -- Check the status for all iLPNs located in PTS
@@ -1416,7 +1451,7 @@ SELECT msg_id,
        REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 16) AS VOLUME,
        WHEN_created
 FROM cl_message
-WHERE REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 12) in ('99034559')
+WHERE REGEXP_SUBSTR(TO_CHAR(data), '[^/^]+', 1, 12) in ('00000156740182525578')
 AND WHEN_created > sysdate - 5
 AND event_id = '6692';
 
